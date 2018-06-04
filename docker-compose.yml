@@ -1,0 +1,23 @@
+version: '3'
+services:
+  db:
+    image: postgres:10.1
+    ports:
+      - "5433:5432"
+  app:
+    build: .
+    command: gin --immediate
+    volumes:
+      - .:/bitrise/go/src/github.com/slapec93/bitrise-step-analytics
+    ports:
+      - "3011:3001"
+    links:
+      - db:postgres
+    environment:
+      PORT: 3011
+      IS_USE_GIN: "yes"
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PSW: postgres
+      DB_NAME: bitrisestepanalyticstest
+      DB_SSL_MODE: disable
