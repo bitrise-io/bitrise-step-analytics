@@ -1,16 +1,38 @@
 package models
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
-	"github.com/markbates/pop/nulls"
+	"github.com/slapec93/bitrise-step-analytics/database"
 )
 
-// StepInfo ...
-type StepInfo struct {
+// StepInfoData ...
+type StepInfoData struct {
 	gorm.Model
 	StepName   string     `db:"step_name"`
 	Duration   float64    `db:"duration"`
-	DurationCI float64    `db:"duration_ci"`
-	LaunchDate nulls.Time `db:"launch_date"`
-	CreatedAt  nulls.Time `db:"created_at"`
+	IsCI       bool       `db:"is_ci"`
+	LaunchDate *time.Time `db:"launch_date"`
+}
+
+// Create ...
+func (s *StepInfoData) Create() {
+	db := database.GetDB()
+	db.NewRecord(s)
+	db.Create(s)
+}
+
+// FindByID ..
+func (s *StepInfoData) FindByID(id int64) {
+	db := database.GetDB()
+	db.First(s, id)
+}
+
+// ListStepInfos ..
+func ListStepInfos() []StepInfoData {
+	db := database.GetDB()
+	stepInfos := []StepInfoData{}
+	db.Find(&stepInfos)
+	return stepInfos
 }
