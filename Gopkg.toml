@@ -24,6 +24,12 @@
 #   go-tests = true
 #   unused-packages = true
 
+# Heroku specific
+# https://github.com/heroku/heroku-buildpack-go#dep-specifics
+[metadata.heroku]
+  root-package = "github.com/slapec93/bitrise-step-analytics"
+  go-version = "go1.10"
+  ensure = "false"
 
 [[constraint]]
   name = "github.com/gorilla/mux"

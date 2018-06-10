@@ -1,11 +1,11 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	// PostgreSQL adapter
 	_ "github.com/lib/pq"
@@ -16,7 +16,8 @@ const (
 )
 
 var (
-	sqlDB *sql.DB
+	sqlDB  *gorm.DB
+	models []interface{}
 )
 
 // ConnectionParams ...
@@ -32,8 +33,13 @@ type ConnectionParams struct {
 // this is mainly exposed for testing purposes.
 // If you want to open a database connection you should do it
 // through InitAndOpenDatabase
-func SetDB(sdb *sql.DB) {
+func SetDB(sdb *gorm.DB) {
 	sqlDB = sdb
+}
+
+// GetDB ...
+func GetDB() *gorm.DB {
+	return sqlDB
 }
 
 // Close ...
@@ -42,7 +48,7 @@ func Close() {
 	SetDB(nil)
 }
 
-func closeDB(dbToClose *sql.DB) {
+func closeDB(dbToClose *gorm.DB) {
 	if dbToClose != nil {
 		if err := dbToClose.Close(); err != nil {
 			// impossible (to test - don't try to get to 100% coverage ;), the only case when there would be an error here
@@ -113,7 +119,7 @@ func (cp ConnectionParams) ToConnectionStringParam() (string, error) {
 
 // InitAndOpenDatabaseWithConnectionParams ...
 func InitAndOpenDatabaseWithConnectionParams(dbConnectionParams string) error {
-	db, err := sql.Open(dbDialect, dbConnectionParams)
+	db, err := gorm.Open(dbDialect, dbConnectionParams)
 	if err != nil {
 		// impossible (to test - don't try to get to 100% coverage ;), the only case when there would be an error here
 		// is if the driver is incorrect, connection params are not validated at all at this point
@@ -121,18 +127,20 @@ func InitAndOpenDatabaseWithConnectionParams(dbConnectionParams string) error {
 		return errors.Wrap(err, "Failed to open database")
 	}
 
-	if err = db.Ping(); err != nil {
-		closeDB(db)
-		return errors.Wrap(err, "Failed to ping database")
-	}
-
 	SetDB(db)
+	DoMigrations()
 	return nil
 }
 
+// DoMigrations ...
+func DoMigrations() {
+	sqlDB.AutoMigrate(models...)
+}
+
 // InitAndOpenDatabase ...
-func InitAndOpenDatabase() error {
+func InitAndOpenDatabase(modelList []interface{}) error {
 	dbConnectionParams := os.Getenv("DATABASE_URL")
+	models = modelList
 	if dbConnectionParams == "" {
 		log.Println(" (!) No DATABASE_URL specified! Checking DB connection params environment variables ...")
 
