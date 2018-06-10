@@ -45,10 +45,16 @@ func StepInfoLogHandler(w http.ResponseWriter, r *http.Request) error {
 		log.Printf(" [!] Exception: Internal Server Error: AppWebhookCreateHandler: %+v", errors.Wrap(err, "Failed to JSON decode request body"))
 		return RespondWithBadRequest(w, "Invalid request body, JSON decode failed")
 	}
-	stepInfo := models.StepInfoData{}
-	stepInfo.StepName = *params.StepName
-	stepInfo.Duration = *params.Duration
-	stepInfo.IsCI = *params.IsCI
+	launchDate, err := utils.StringTimeToTime(*params.LaunchDate)
+	if err != nil {
+		return RespondWithBadRequest(w, err.Error())
+	}
+	stepInfo := models.StepInfoData{
+		StepName:   *params.StepName,
+		Duration:   *params.Duration,
+		IsCI:       *params.IsCI,
+		LaunchDate: &launchDate,
+	}
 	stepInfo.Create()
 	return RespondWithSuccess(w, NewStepInfoFromStepInfoData(stepInfo))
 }
