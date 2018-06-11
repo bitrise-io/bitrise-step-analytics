@@ -14,6 +14,7 @@ type StepInfoData struct {
 	Duration   float64    `db:"duration"`
 	IsCI       bool       `db:"is_ci"`
 	LaunchDate *time.Time `db:"launch_date"`
+	Status     int64      `db:"status"`
 }
 
 // Create ...
@@ -35,4 +36,11 @@ func ListStepInfos() []StepInfoData {
 	stepInfos := []StepInfoData{}
 	db.Find(&stepInfos)
 	return stepInfos
+}
+
+// StepInfoErrorRate ...
+func StepInfoErrorRate(launchDate time.Time) float64 {
+	db := database.GetDB()
+	errorRate := 0.0
+
 }

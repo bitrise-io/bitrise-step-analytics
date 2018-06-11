@@ -17,6 +17,7 @@ type StepInfo struct {
 	Duration   float64    `json:"duration"`
 	IsCI       bool       `json:"is_ci"`
 	LaunchDate *time.Time `json:"launch_date"`
+	Status     int64      `json:"status"`
 }
 
 // NewStepInfoFromStepInfoData ...
@@ -26,6 +27,7 @@ func NewStepInfoFromStepInfoData(stepInfoData models.StepInfoData) StepInfo {
 		Duration:   stepInfoData.Duration,
 		IsCI:       stepInfoData.IsCI,
 		LaunchDate: stepInfoData.LaunchDate,
+		Status:     stepInfoData.Status,
 	}
 }
 
@@ -35,6 +37,7 @@ type LogStepInfoParams struct {
 	Duration   *float64 `json:"duration"`
 	IsCI       *bool    `json:"is_ci"`
 	LaunchDate *string  `json:"launch_date"`
+	Status     *int64   `json:"status"`
 }
 
 // StepInfoLogHandler ...
@@ -53,6 +56,7 @@ func StepInfoLogHandler(w http.ResponseWriter, r *http.Request) error {
 		StepName:   *params.StepName,
 		Duration:   *params.Duration,
 		IsCI:       *params.IsCI,
+		Status:     *params.Status,
 		LaunchDate: &launchDate,
 	}
 	stepInfo.Create()
