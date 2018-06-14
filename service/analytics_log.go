@@ -15,7 +15,7 @@ import (
 type StepAnalyticsParams struct {
 	StepID      *string          `json:"step_id"`
 	Status      *string          `json:"status"`
-	StartTime   *string          `json:"start_time"`
+	StartTime   *time.Time       `json:"start_time"`
 	Runtime     *int64           `json:"run_time"`
 	RawJSONData *json.RawMessage `json:"raw_json_data"`
 }
@@ -27,7 +27,7 @@ type BuildAnalyticsParams struct {
 	Platform      *string               `json:"platform"`
 	CLIVersion    *string               `json:"cli_version"`
 	Status        *string               `db:"status" json:"status"`
-	StartTime     *string               `json:"start_time"`
+	StartTime     *time.Time            `json:"start_time"`
 	Runtime       *int64                `json:"run_time"`
 	RawJSONData   *json.RawMessage      `json:"raw_json_data"`
 	StepAnalytics []StepAnalyticsParams `json:"step_analytics"`
@@ -41,10 +41,6 @@ func AnalyticsLogHandler(w http.ResponseWriter, r *http.Request) error {
 		log.Printf(" [!] Exception: Internal Server Error: AnalyticsLogHandler: %+v", errors.Wrap(err, "Failed to JSON decode request body"))
 		return RespondWithBadRequest(w, "Invalid request body, JSON decode failed")
 	}
-	startTime, err := utils.StringTimeToTime(*params.StartTime)
-	if err != nil {
-		return RespondWithBadRequest(w, err.Error())
-	}
 
 	buildAnalytics := models.BuildAnalytics{
 		AppID:       *params.AppID,
@@ -52,7 +48,7 @@ func AnalyticsLogHandler(w http.ResponseWriter, r *http.Request) error {
 		Platform:    *params.Platform,
 		CLIVersion:  *params.CLIVersion,
 		Status:      *params.Status,
-		StartTime:   startTime,
+		StartTime:   *params.StartTime,
 		Runtime:     time.Duration(*params.Runtime) * time.Second,
 		RawJSONData: *params.RawJSONData,
 	}
@@ -60,15 +56,11 @@ func AnalyticsLogHandler(w http.ResponseWriter, r *http.Request) error {
 	stepAnalyticsList := []models.StepAnalytics{}
 
 	for _, aStepAnalyticsParam := range params.StepAnalytics {
-		startTime, err := utils.StringTimeToTime(*aStepAnalyticsParam.StartTime)
-		if err != nil {
-			return RespondWithBadRequest(w, err.Error())
-		}
 		stepAnalytics := models.StepAnalytics{
 			BuildAnalyticsID: uint64(buildAnalytics.ID),
 			StepID:           *aStepAnalyticsParam.StepID,
 			Status:           *aStepAnalyticsParam.Status,
-			StartTime:        startTime,
+			StartTime:        *aStepAnalyticsParam.StartTime,
 			Runtime:          time.Duration(*aStepAnalyticsParam.Runtime) * time.Second,
 			RawJSONData:      *aStepAnalyticsParam.RawJSONData,
 		}
