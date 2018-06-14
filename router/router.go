@@ -16,9 +16,10 @@ func New(config configs.ConfigModel) *mux.Router {
 	)
 
 	r.Handle("/", commonMiddleware.ThenFunc(service.RootHandler))
-	r.Handle("/step-info", commonMiddleware.Then(
-		service.InternalErrHandlerFuncAdapter(service.StepInfoListHandler))).Methods("GET")
-	r.Handle("/step-info", commonMiddleware.Then(
-		service.InternalErrHandlerFuncAdapter(service.StepInfoLogHandler))).Methods("POST")
+	r.Handle("/analytics", commonMiddleware.Then(
+		service.InternalErrHandlerFuncAdapter(service.AnalyticsListHandler))).Methods("GET")
+	r.Handle("/log-analytics", commonMiddleware.Then(
+		service.InternalErrHandlerFuncAdapter(service.AnalyticsLogHandler))).Methods("POST")
+
 	return r
 }
