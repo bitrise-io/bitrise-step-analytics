@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/slapec93/bitrise-step-analytics/database"
 )
 
 // BuildAnalytics ...
@@ -25,4 +26,12 @@ type BuildAnalytics struct {
 // Create ...
 func (b *BuildAnalytics) Create() {
 	CreateInDB(b)
+}
+
+// ListBuildAnalytics ..
+func ListBuildAnalytics() []BuildAnalytics {
+	db := database.GetDB()
+	buildAnalytics := []BuildAnalytics{}
+	db.Preload("StepAnalytics").Find(&buildAnalytics)
+	return buildAnalytics
 }
