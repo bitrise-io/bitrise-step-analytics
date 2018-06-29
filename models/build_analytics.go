@@ -28,6 +28,20 @@ func (b *BuildAnalytics) Create() {
 	CreateInDB(b)
 }
 
+// Update ...
+func (b *BuildAnalytics) Update(attrs *BuildAnalytics) {
+	db := database.GetDB()
+	db.Model(b).Updates(attrs)
+}
+
+// FindBuildAnalyticsByID ...
+func FindBuildAnalyticsByID(id int64) BuildAnalytics {
+	db := database.GetDB()
+	buildAnalytics := BuildAnalytics{}
+	db.Where("id = ?", id).Find(&buildAnalytics)
+	return buildAnalytics
+}
+
 // ListBuildAnalytics ..
 func ListBuildAnalytics() []BuildAnalytics {
 	db := database.GetDB()
