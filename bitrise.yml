@@ -7,19 +7,7 @@ app:
   - RELEASE_DESTINATION_BRANCH: prod
   - PORT: 3011
 workflows:
-  _prepare_db:
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            docker-compose start db
-            docker-compose exec db psql -U postgres -c "drop database if exists ${DB_NAME};"
-            docker-compose exec db psql -U postgres -c "create database ${DB_NAME};"
   start:
-    before_run:
-    - _prepare_db
     steps:
     - script:
         inputs:

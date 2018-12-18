@@ -52,7 +52,7 @@ func AnalyticsLogHandler(w http.ResponseWriter, r *http.Request) error {
 		Runtime:     time.Duration(*params.Runtime) * time.Second,
 		RawJSONData: *params.RawJSONData,
 	}
-	buildAnalytics.Create()
+
 	stepAnalyticsList := []models.StepAnalytics{}
 
 	for _, aStepAnalyticsParam := range params.StepAnalytics {

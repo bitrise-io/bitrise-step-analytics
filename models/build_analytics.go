@@ -3,14 +3,10 @@ package models
 import (
 	"encoding/json"
 	"time"
-
-	"github.com/jinzhu/gorm"
-	"github.com/slapec93/bitrise-step-analytics/database"
 )
 
 // BuildAnalytics ...
 type BuildAnalytics struct {
-	gorm.Model
 	AppID       string          `db:"app_id" json:"app_id"`
 	StackID     string          `db:"stack_id" json:"stack_id"`
 	Platform    string          `db:"platform" json:"platform"`
@@ -21,17 +17,4 @@ type BuildAnalytics struct {
 	RawJSONData json.RawMessage `db:"raw_json_data" json:"raw_json_data" sql:"type:json"`
 
 	StepAnalytics []StepAnalytics `gorm:"foreignkey:BuildAnalyticsID" json:"step_analytics"`
-}
-
-// Create ...
-func (b *BuildAnalytics) Create() {
-	CreateInDB(b)
-}
-
-// ListBuildAnalytics ..
-func ListBuildAnalytics() []BuildAnalytics {
-	db := database.GetDB()
-	buildAnalytics := []BuildAnalytics{}
-	db.Preload("StepAnalytics").Find(&buildAnalytics)
-	return buildAnalytics
 }
