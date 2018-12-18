@@ -4,12 +4,16 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/bitrise-team/bitrise-step-analytics/configs"
+	"github.com/bitrise-team/bitrise-step-analytics/router"
 	"github.com/pkg/errors"
-	"github.com/slapec93/bitrise-step-analytics/configs"
-	"github.com/slapec93/bitrise-step-analytics/router"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func initilize() error {
+	tracer.Start(tracer.WithServiceName("steps"))
+	defer tracer.Stop()
+
 	conf, err := configs.CreateAndValidate()
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), "Failed to read Configs")

@@ -2,10 +2,10 @@ format_version: '4'
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
-  - GO_PROJECT_PATH: github.com/slapec93/bitrise-step-analytics
+  - GO_PROJECT_PATH: github.com/bitrise-team/bitrise-step-analytics
   - RELEASE_START_BRANCH: master
   - RELEASE_DESTINATION_BRANCH: prod
-  - PORT: 3011
+  - PORT: 3012
 workflows:
   start:
     steps:

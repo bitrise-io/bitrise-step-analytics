@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-team/bitrise-step-analytics/models"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 // StepAnalyticsParams ...
@@ -68,7 +68,14 @@ func AnalyticsLogHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	buildAnalytics.StepAnalytics = stepAnalyticsList
-	fmt.Println(buildAnalytics)
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	logger.Info("failed to fetch URL",
+		zap.String("app_id", buildAnalytics.AppID),
+		zap.String("stack_id", buildAnalytics.StackID),
+		zap.Duration("run_time", buildAnalytics.Runtime),
+	)
+	// fmt.Println(buildAnalytics)
 
 	return httpresponse.RespondWithSuccess(w, buildAnalytics)
 }
