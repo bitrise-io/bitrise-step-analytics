@@ -6,8 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/slapec93/bitrise-step-analytics/configs"
-	"github.com/slapec93/bitrise-step-analytics/database"
-	"github.com/slapec93/bitrise-step-analytics/models"
 	"github.com/slapec93/bitrise-step-analytics/router"
 )
 
@@ -16,13 +14,6 @@ func initilize() error {
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), "Failed to read Configs")
 	}
-
-	// Database
-	if err := database.InitAndOpenDatabase(models.GetModelList()); err != nil {
-		return errors.Wrap(errors.WithStack(err), "Failed to init and open the database")
-	}
-	defer database.Close()
-	log.Println(" [OK] Database connection established")
 
 	// Routing
 	http.Handle("/", router.New(conf))

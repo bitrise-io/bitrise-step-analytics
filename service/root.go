@@ -1,8 +1,12 @@
 package service
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/bitrise-io/api-utils/httpresponse"
+)
 
 // RootHandler ...
 func RootHandler(w http.ResponseWriter, r *http.Request) {
-	RespondWithSuccessNoErr(w, map[string]string{"message": "Bitrise Step Analytics"})
+	httpresponse.RespondWithSuccessNoErr(w, map[string]string{"message": "Bitrise Step Analytics"})
 }

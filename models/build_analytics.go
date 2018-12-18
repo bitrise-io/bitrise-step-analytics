@@ -7,14 +7,14 @@ import (
 
 // BuildAnalytics ...
 type BuildAnalytics struct {
-	AppID       string          `db:"app_id" json:"app_id"`
-	StackID     string          `db:"stack_id" json:"stack_id"`
-	Platform    string          `db:"platform" json:"platform"`
-	CLIVersion  string          `db:"cli_version" json:"cli_version"`
-	Status      string          `db:"status" json:"status"`
-	StartTime   time.Time       `db:"start_time" json:"start_time"`
-	Runtime     time.Duration   `db:"run_time" json:"run_time"`
-	RawJSONData json.RawMessage `db:"raw_json_data" json:"raw_json_data" sql:"type:json"`
+	AppID       string          `json:"app_id"`
+	StackID     string          `json:"stack_id"`
+	Platform    string          `json:"platform"`
+	CLIVersion  string          `json:"cli_version"`
+	Status      string          `json:"status"`
+	StartTime   time.Time       `json:"start_time"`
+	Runtime     time.Duration   `json:"run_time"`
+	RawJSONData json.RawMessage `json:"raw_json_data"`
 
-	StepAnalytics []StepAnalytics `gorm:"foreignkey:BuildAnalyticsID" json:"step_analytics"`
+	StepAnalytics []StepAnalytics `json:"step_analytics"`
 }

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 	"github.com/rs/cors"
@@ -16,10 +17,8 @@ func New(config configs.ConfigModel) *mux.Router {
 	)
 
 	r.Handle("/", commonMiddleware.ThenFunc(service.RootHandler))
-	r.Handle("/analytics", commonMiddleware.Then(
-		service.InternalErrHandlerFuncAdapter(service.AnalyticsListHandler))).Methods("GET")
 	r.Handle("/log-analytics", commonMiddleware.Then(
-		service.InternalErrHandlerFuncAdapter(service.AnalyticsLogHandler))).Methods("POST")
+		httpresponse.InternalErrHandlerFuncAdapter(service.AnalyticsLogHandler))).Methods("POST")
 
 	return r
 }
