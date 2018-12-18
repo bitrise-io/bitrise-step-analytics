@@ -2,80 +2,49 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-team/bitrise-step-analytics/models"
+	"github.com/bitrise-team/bitrise-step-analytics/utils"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
-// StepAnalyticsParams ...
-type StepAnalyticsParams struct {
-	StepID      string          `json:"step_id"`
-	Status      string          `json:"status"`
-	StartTime   time.Time       `json:"start_time"`
-	Runtime     time.Duration   `json:"run_time"`
-	RawJSONData json.RawMessage `json:"raw_json_data"`
-}
-
-// BuildAnalyticsParams ...
-type BuildAnalyticsParams struct {
-	AppID         string                `json:"app_id"`
-	StackID       string                `json:"stack_id"`
-	Platform      string                `json:"platform"`
-	CLIVersion    string                `json:"cli_version"`
-	Status        string                `json:"status"`
-	StartTime     time.Time             `json:"start_time"`
-	Runtime       time.Duration         `json:"run_time"`
-	RawJSONData   json.RawMessage       `json:"raw_json_data"`
-	StepAnalytics []StepAnalyticsParams `json:"step_analytics"`
-}
-
 // AnalyticsLogHandler ...
 func AnalyticsLogHandler(w http.ResponseWriter, r *http.Request) error {
-	params := BuildAnalyticsParams{}
+	buildAnalytics := models.BuildAnalytics{}
 	defer httpresponse.RequestBodyCloseWithErrorLog(r)
-	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&buildAnalytics); err != nil {
 		log.Printf(" [!] Exception: Internal Server Error: AnalyticsLogHandler: %+v", errors.Wrap(err, "Failed to JSON decode request body"))
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, JSON decode failed")
 	}
 
-	buildAnalytics := models.BuildAnalytics{
-		AppID:       params.AppID,
-		StackID:     params.StackID,
-		Platform:    params.Platform,
-		CLIVersion:  params.CLIVersion,
-		Status:      params.Status,
-		StartTime:   params.StartTime,
-		Runtime:     params.Runtime,
-		RawJSONData: params.RawJSONData,
-	}
+	logger, loggerSync := utils.GetLogger()
+	defer loggerSync()
 
-	stepAnalyticsList := []models.StepAnalytics{}
-
-	for _, aStepAnalyticsParam := range params.StepAnalytics {
-		stepAnalytics := models.StepAnalytics{
-			StepID:      aStepAnalyticsParam.StepID,
-			Status:      aStepAnalyticsParam.Status,
-			StartTime:   aStepAnalyticsParam.StartTime,
-			Runtime:     aStepAnalyticsParam.Runtime,
-			RawJSONData: aStepAnalyticsParam.RawJSONData,
-		}
-		stepAnalyticsList = append(stepAnalyticsList, stepAnalytics)
-	}
-
-	buildAnalytics.StepAnalytics = stepAnalyticsList
-	logger, _ := zap.NewProduction()
-	defer logger.Sync()
-	logger.Info("failed to fetch URL",
+	logger.Info("Build finished",
 		zap.String("app_id", buildAnalytics.AppID),
 		zap.String("stack_id", buildAnalytics.StackID),
+		zap.String("platform", buildAnalytics.Platform),
+		zap.String("cli_version", buildAnalytics.CLIVersion),
+		zap.String("status", buildAnalytics.Status),
+		zap.Time("start_time", buildAnalytics.StartTime),
 		zap.Duration("run_time", buildAnalytics.Runtime),
+		zap.Any("raw_json_data", buildAnalytics.RawJSONData),
 	)
-	// fmt.Println(buildAnalytics)
+
+	for _, aStepAnalytic := range buildAnalytics.StepAnalytics {
+		logger.Info(fmt.Sprintf("Step %s finished", aStepAnalytic.StepID),
+			zap.String("step_id", aStepAnalytic.StepID),
+			zap.String("status", aStepAnalytic.Status),
+			zap.Time("start_time", aStepAnalytic.StartTime),
+			zap.Duration("run_time", aStepAnalytic.Runtime),
+			zap.Any("raw_json_data", buildAnalytics.RawJSONData),
+		)
+	}
 
 	return httpresponse.RespondWithSuccess(w, buildAnalytics)
 }
