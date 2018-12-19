@@ -1,0 +1,9 @@
+#!/usr/bin/execlineb -P
+
+importas -Cs S6_LOGGING_SCRIPT S6_LOGGING_SCRIPT
+
+# setup logging:
+# use the defaults specified in `S6_LOGGING_SCRIPT`
+if { s6-rmrf /app/bitrise/logs/bitrise-step-analytics }
+if { s6-mkdir -p /app/bitrise/logs/bitrise-step-analytics }
+s6-log $S6_LOGGING_SCRIPT /app/bitrise/logs/bitrise-step-analytics

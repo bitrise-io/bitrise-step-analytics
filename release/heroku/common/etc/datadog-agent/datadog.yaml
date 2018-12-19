@@ -1,0 +1,28 @@
+# Enable APM by setting the DD_APM_ENABLED envvar to true, or override this configuration
+apm_config:
+  enabled: false
+  apm_non_local_traffic: false
+  # will be substituted by 91-populate-datadog-yaml.sh
+  env: __APM_ENV__
+
+# Turn log collectors on
+logs_enabled: true
+
+# Fix the path of `/proc`
+procfs_path: /proc
+
+# Autodiscovery
+#
+# Change the root directory to look at to get cgroup statistics. Useful when running inside a
+# container with host directories mounted on a different folder.
+# Default if environment variable "DOCKER_DD_AGENT" is set
+# "/host/sys/fs/cgroup" and "/sys/fs/cgroup" if not.
+#
+container_cgroup_root: /sys/fs/cgroup/
+#
+# Change the root directory to look at to get proc statistics. Useful when running inside a
+# container with host directories mounted on a different folder.
+# Default if environment variable "DOCKER_DD_AGENT" is set
+# "/host/proc" and "/proc" if not.
+#
+container_proc_root: /proc

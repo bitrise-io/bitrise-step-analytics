@@ -6,6 +6,7 @@ app:
   - RELEASE_START_BRANCH: master
   - RELEASE_DESTINATION_BRANCH: prod
   - PORT: 3012
+  - HEROKU_APP_NAME: bitrise-step-analytics
 workflows:
   start:
     steps:
@@ -21,3 +22,14 @@ workflows:
               go install
               bitrise-step-analytics
             fi
+  deploy-to-heroku:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+
+            heroku container:login
+            heroku container:push web -R -a $HEROKU_APP_NAME
+            heroku container:release web -a $HEROKU_APP_NAME

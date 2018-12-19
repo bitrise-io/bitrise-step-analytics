@@ -1,0 +1,16 @@
+#!/usr/bin/execlineb -P
+
+importas -D "" DD_HOSTNAME HEROKU_APP_NAME
+importas -D "" DYNO DYNO
+importas -D "" DD_TAGS DD_TAGS
+importas -D "local" GO_ENV GO_ENV
+
+# Append the env tag
+export DD_TAGS "${DD_TAGS} environment:${GO_ENV} dyno:${DYNO}"
+
+# Append the given dyno's name
+export DD_HOSTNAME "${DD_HOSTNAME}.${DYNO}"
+
+foreground { /initlog.sh "starting agent" }
+fdmove -c 2 1
+agent run

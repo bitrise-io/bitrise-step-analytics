@@ -1,0 +1,6 @@
+#!/usr/bin/execlineb -P
+
+# redirect stderr to stdout
+fdmove -c 2 1
+# start up main
+exec /opt/bitrise/bitrise-step-analytics

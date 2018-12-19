@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# If the container is stopped via docker, s6 is already closing, silencing the error
+redirfd -w 2 /dev/null s6-svscanctl -t /var/run/s6/services

@@ -1,6 +1,0 @@
-##Log section
-logs:
-  - type: file
-    path: /app/log/steps.log
-    service: steps
-    source: go
