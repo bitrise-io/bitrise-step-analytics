@@ -28,7 +28,7 @@
 # https://github.com/heroku/heroku-buildpack-go#dep-specifics
 [metadata.heroku]
   root-package = "github.com/bitrise-team/bitrise-step-analytics"
-  go-version = "go1.10"
+  go-version = "go1.11"
   ensure = "false"
 
 [[constraint]]
