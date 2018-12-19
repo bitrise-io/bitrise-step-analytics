@@ -1,5 +1,5 @@
 logs:
   - type: file
     path: /app/bitrise/logs/bitrise-step-analytics/current
-    service: step-analytics
+    service: steps
     source: go

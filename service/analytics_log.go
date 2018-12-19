@@ -24,7 +24,7 @@ func AnalyticsLogHandler(w http.ResponseWriter, r *http.Request) error {
 
 	logger, loggerSync := utils.GetLogger()
 	defer loggerSync()
-
+	// fmt.Printf(`{"msg":"Build finished"}`)
 	logger.Info("Build finished",
 		zap.String("app_id", buildAnalytics.AppID),
 		zap.String("stack_id", buildAnalytics.StackID),
@@ -45,7 +45,6 @@ func AnalyticsLogHandler(w http.ResponseWriter, r *http.Request) error {
 			zap.Any("raw_json_data", buildAnalytics.RawJSONData),
 		)
 	}
-	
 
 	return httpresponse.RespondWithSuccess(w, map[string]string{"message": "ok"})
 }
