@@ -9,6 +9,8 @@ RUN go get github.com/codegangsta/gin \
     && go get github.com/kisielk/errcheck \
     && go get github.com/golang/lint/golint
 
+COPY ./datadog-agent /app/.apt/etc/datadog-agent
+
 WORKDIR $BITRISE_SOURCE_DIR
 
 CMD $PROJ_NAME
