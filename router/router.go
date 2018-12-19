@@ -11,7 +11,7 @@ import (
 
 // New ...
 func New(config configs.ConfigModel) *mux.Router {
-	r := mux.NewRouter().StrictSlash(true)
+	r := mux.NewRouter(mux.WithServiceName("steps-mux")).StrictSlash(true)
 	commonMiddleware := alice.New(
 		cors.AllowAll().Handler,
 	)
