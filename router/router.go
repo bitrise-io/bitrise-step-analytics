@@ -4,9 +4,9 @@ import (
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-team/bitrise-step-analytics/configs"
 	"github.com/bitrise-team/bitrise-step-analytics/service"
-	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 	"github.com/rs/cors"
+	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 )
 
 // New ...

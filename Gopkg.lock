@@ -83,6 +83,9 @@
 [[projects]]
   name = "gopkg.in/DataDog/dd-trace-go.v1"
   packages = [
+    "contrib/gorilla/mux",
+    "contrib/internal/httputil",
+    "contrib/internal/lists",
     "ddtrace",
     "ddtrace/ext",
     "ddtrace/internal",
@@ -94,6 +97,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eb9311cee2aaf9cb54750c6c4a52c1eb652b57e0a3e33e1f72272937bf0a5a25"
+  inputs-digest = "39a5ea29b77e4b6993db2569745ec93f8904afd7253f2383c7c9d34e48006e5f"
   solver-name = "gps-cdcl"
   solver-version = 1
