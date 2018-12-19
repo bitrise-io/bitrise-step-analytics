@@ -3,14 +3,16 @@ FROM bitriseio/docker-bitrise-base
 # envs
 ENV PROJ_NAME=bitrise-step-analytics
 ENV BITRISE_SOURCE_DIR="/bitrise/go/src/github.com/bitrise-team/$PROJ_NAME"
+WORKDIR $BITRISE_SOURCE_DIR
+COPY . .
+RUN go build
+RUN ls -a
 
 # Get go tools
-RUN go get github.com/codegangsta/gin \
-    && go get github.com/kisielk/errcheck \
-    && go get github.com/golang/lint/golint
+# RUN go get github.com/codegangsta/gin \
+#     && go get github.com/kisielk/errcheck \
+#     && go get github.com/golang/lint/golint
 
 COPY ./datadog-agent /app/.apt/etc/datadog-agent
 
-WORKDIR $BITRISE_SOURCE_DIR
-
-CMD $PROJ_NAME
+CMD ./$PROJ_NAME
