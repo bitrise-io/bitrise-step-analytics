@@ -7,7 +7,8 @@ import (
 
 // ConfigModel ...
 type ConfigModel struct {
-	Port string
+	Port    string
+	EnvMode string
 }
 
 // Validate ...
@@ -15,12 +16,16 @@ func (c ConfigModel) Validate() error {
 	if len(c.Port) < 1 {
 		return errors.New("Port must be specified")
 	}
+	if len(c.EnvMode) < 1 {
+		return errors.New("Env mode must be specified")
+	}
 	return nil
 }
 
 func createFromEnvs() (ConfigModel, error) {
 	c := ConfigModel{
-		Port: os.Getenv("PORT"),
+		Port:    os.Getenv("PORT"),
+		EnvMode: os.Getenv("GO_ENV"),
 	}
 	return c, nil
 }

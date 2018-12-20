@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -12,4 +13,22 @@ type StepAnalytics struct {
 	StartTime   time.Time       `json:"start_time"`
 	Runtime     time.Duration   `json:"run_time"`
 	RawJSONData json.RawMessage `json:"raw_json_data"`
+}
+
+// GetProfileName ...
+func (a StepAnalytics) GetProfileName() string {
+	return "step"
+}
+
+// GetTagArray ...
+func (a StepAnalytics) GetTagArray() []string {
+	return []string{
+		fmt.Sprintf("step_id:%s", a.StepID),
+		fmt.Sprintf("status:%s", a.Status),
+	}
+}
+
+// GetRunTime ...
+func (a StepAnalytics) GetRunTime() time.Duration {
+	return a.Runtime
 }
