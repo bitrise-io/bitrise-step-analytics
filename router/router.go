@@ -1,6 +1,8 @@
 package router
 
 import (
+	"fmt"
+
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-team/bitrise-step-analytics/configs"
 	"github.com/bitrise-team/bitrise-step-analytics/service"
@@ -12,6 +14,9 @@ import (
 func New(config configs.ConfigModel) *mux.Router {
 	r := mux.NewRouter(mux.WithServiceName("steps-mux")).StrictSlash(true)
 	logger, err := zap.NewProduction()
+	if err != nil {
+		fmt.Println("Failed to initialize zap logger")
+	}
 
 	middlewareProvider := service.MiddlewareProvider{
 		LoggerProvider: service.NewLoggerProvider(logger),
