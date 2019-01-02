@@ -4,21 +4,24 @@ import (
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-team/bitrise-step-analytics/configs"
 	"github.com/bitrise-team/bitrise-step-analytics/service"
-	"github.com/justinas/alice"
-	"github.com/rs/cors"
+	"go.uber.org/zap"
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 )
 
 // New ...
 func New(config configs.ConfigModel) *mux.Router {
 	r := mux.NewRouter(mux.WithServiceName("steps-mux")).StrictSlash(true)
-	commonMiddleware := alice.New(
-		cors.AllowAll().Handler,
-	)
+	logger, err := zap.NewProduction()
 
-	r.Handle("/", commonMiddleware.ThenFunc(service.RootHandler))
-	r.Handle("/log-analytics", commonMiddleware.Then(
-		httpresponse.InternalErrHandlerFuncAdapter(service.AnalyticsLogHandler))).Methods("POST")
+	middlewareProvider := service.MiddlewareProvider{
+		LoggerProvider: service.NewLoggerProvider(logger),
+	}
+
+	r.Handle("/", middlewareProvider.CommonMiddleware().ThenFunc(service.RootHandler))
+	r.Handle("/metrics", middlewareProvider.CommonMiddleware().Then(
+		httpresponse.InternalErrHandlerFuncAdapter(service.MetricsPostHandler))).Methods("POST")
+	r.Handle("/logs", middlewareProvider.MiddlewareWithLoggerProvider().Then(
+		httpresponse.InternalErrHandlerFuncAdapter(service.CustomLogsPostHandler))).Methods("POST")
 
 	return r
 }

@@ -7,16 +7,6 @@ import (
 
 // GetLogger ...
 func GetLogger() (*zap.Logger, func() error) {
-	// cfg := zap.NewProductionConfig()
-	// cfg.OutputPaths = []string{
-	// 	"./log/steps.log",
-	// }
-	// logger, err := cfg.Build()
-	// if err != nil {
-	// 	return nil, func() error {
-	// 		return errors.WithStack(err)
-	// 	}
-	// }
 	logger, err := zap.NewProduction()
 	if err != nil {
 		return nil, func() error {
