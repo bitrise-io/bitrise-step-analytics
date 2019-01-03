@@ -8,13 +8,10 @@ import (
 
 	"github.com/bitrise-team/bitrise-step-analytics/service"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 )
 
-func Test_CustomLogsPostHandler(t *testing.T) {
-	handler := service.CustomLogsPostHandler
+func Test_MetricsPostHandler(t *testing.T) {
+	handler := service.MetricsPostHandler
 
 	for _, tc := range []struct {
 		testName            string
@@ -25,41 +22,37 @@ func Test_CustomLogsPostHandler(t *testing.T) {
 		expectedStatusCode  int
 	}{
 		{
-			testName:           "ok, minimal",
-			requestBody:        `{}`,
+			testName: "ok, minimal",
+			requestBody: `{` +
+				`"app_id":"app-slug","stack_id":"standard1","platform":"ios","cli_version":"1.21","status":"success","start_time":"2019-01-03T18:11:53.171409Z","run_time":121` +
+				`,"step_analytics":[` +
+				`{"step_id":"deploy_to_bitrise_io","status":"0","start_time":"2019-01-03T18:11:53.171409Z","run_time":120}` +
+				`,{"step_id":"script","status":"0","start_time":"2019-01-03T18:11:53.171409Z","run_time":210}` +
+				`]` +
+				`}`,
 			expectedStatusCode: http.StatusOK,
 			expectedBody:       `{"message":"ok"}` + "\n",
 		},
 		{
-			testName:           "ok, more complex",
-			expectedLogContent: map[string]interface{}{"key1": "value1"},
-			requestBody:        `{"log_level":"info","message":"test message","data":{"key1":"value1"}}`,
-			expectedStatusCode: http.StatusOK,
-			expectedBody:       `{"message":"ok"}` + "\n",
-		},
-		{
-			testName:           "when request body isn't a valid JSON, it retrieves bad reqest error",
+			testName:           "when no request body provided",
 			expectedStatusCode: http.StatusBadRequest,
 			expectedBody:       `{"message":"Invalid request body, JSON decode failed"}` + "\n",
 		},
+		{
+			testName:           "when no metrics data provided",
+			requestBody:        `{}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide metrics data"}` + "\n",
+		},
 	} {
 		t.Run(tc.testName, func(t *testing.T) {
-			core, recorded := observer.New(zapcore.InfoLevel)
-			zl := zap.New(core)
-
-			r, err := http.NewRequest("POST", "/logs", bytes.NewBuffer([]byte(tc.requestBody)))
+			r, err := http.NewRequest("POST", "/metrics", bytes.NewBuffer([]byte(tc.requestBody)))
 			require.NoError(t, err)
 
-			r = r.WithContext(service.ContextWithLoggerProvider(r.Context(), service.NewLoggerProvider(zl)))
+			r = r.WithContext(service.ContextWithDogStatsDMetrics(r.Context(), &testDogStatsdMetrics{}))
 
 			rr := httptest.NewRecorder()
 			internalServerError := handler(rr, r)
-
-			for _, logs := range recorded.All() {
-				for _, field := range logs.Context {
-					require.Equal(t, tc.expectedLogContent, field.Interface)
-				}
-			}
 
 			if tc.expectedBody != "" {
 				require.Equal(t, tc.expectedBody, rr.Body.String())

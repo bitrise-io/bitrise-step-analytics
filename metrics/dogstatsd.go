@@ -21,6 +21,12 @@ const (
 	DogStatsDBuildCounterMetricName = "count_of_build_runs"
 )
 
+// DogStatsDInterface ...
+type DogStatsDInterface interface {
+	Track(t Trackable, metricName string)
+	Close()
+}
+
 // DogStatsDMetrics ...
 type DogStatsDMetrics struct {
 	client *statsd.Client

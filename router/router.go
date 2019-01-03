@@ -5,6 +5,7 @@ import (
 
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-team/bitrise-step-analytics/configs"
+	"github.com/bitrise-team/bitrise-step-analytics/metrics"
 	"github.com/bitrise-team/bitrise-step-analytics/service"
 	"go.uber.org/zap"
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
@@ -19,7 +20,8 @@ func New(config configs.ConfigModel) *mux.Router {
 	}
 
 	middlewareProvider := service.MiddlewareProvider{
-		LoggerProvider: service.NewLoggerProvider(logger),
+		LoggerProvider:   service.NewLoggerProvider(logger),
+		DogStatsDMetrics: metrics.NewDogStatsDMetrics(""),
 	}
 
 	r.Handle("/", middlewareProvider.CommonMiddleware().ThenFunc(service.RootHandler))
