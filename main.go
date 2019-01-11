@@ -11,7 +11,7 @@ import (
 )
 
 func initilize() error {
-	tracer.Start(tracer.WithServiceName("steps"))
+	tracer.Start(tracer.WithServiceName("step-analytics"))
 	defer tracer.Stop()
 
 	conf, err := configs.CreateAndValidate()
