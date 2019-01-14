@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/DataDog/datadog-go/statsd"
-	"github.com/bitrise-team/bitrise-step-analytics/utils"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -76,18 +75,26 @@ func (b *DogStatsDMetrics) createTagArray(t Taggable, tags ...string) []string {
 
 // Track ...
 func (b *DogStatsDMetrics) Track(t Trackable, metricName string) {
-	logger, loggerSync := utils.GetLogger()
-	defer loggerSync()
+	logger, err := zap.NewProduction()
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %s", err)
+	}
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Failed to sync logger: %s", err)
+		}
+	}()
 
 	tags := b.createTagArray(t, fmt.Sprintf("name:%s", t.GetProfileName()))
 
 	if err := b.client.Gauge(metricName, float64(t.GetRunTime()), tags, 1.0); err == nil {
-		logger.Warn("DogStatsD Diagnostic backend has failed to track",
+		logger.Error("DogStatsD Diagnostic backend has failed to track",
 			zap.String("profile_name", t.GetProfileName()),
 			zap.Any("error_details", errors.WithStack(err)),
 		)
 	} else {
-		logger.Warn("DogStatsD Diagnostic backend has failed to track",
+		logger.Error("DogStatsD Diagnostic backend has failed to track",
 			zap.String("profile_name", t.GetProfileName()),
 			zap.Any("error_details", errors.WithStack(err)),
 		)
@@ -96,17 +103,25 @@ func (b *DogStatsDMetrics) Track(t Trackable, metricName string) {
 
 // Close ...
 func (b *DogStatsDMetrics) Close() {
-	logger, loggerSync := utils.GetLogger()
-	defer loggerSync()
+	logger, err := zap.NewProduction()
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %s", err)
+	}
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Failed to sync logger: %s", err)
+		}
+	}()
 
 	if err := b.client.Flush(); err != nil {
-		logger.Warn("DogStatsD Diagnostic backend has failed to flush its metrics",
+		logger.Error("DogStatsD Diagnostic backend has failed to flush its metrics",
 			zap.Any("error_details", errors.WithStack(err)),
 		)
 	}
 
 	if err := b.client.Close(); err != nil {
-		logger.Warn("DogStatsD Diagnostic backend has failed to close its client",
+		logger.Error("DogStatsD Diagnostic backend has failed to close its client",
 			zap.Any("error_details", errors.WithStack(err)),
 		)
 	}
