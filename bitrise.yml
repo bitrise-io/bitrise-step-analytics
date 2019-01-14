@@ -1,5 +1,6 @@
-format_version: '4'
+format_version: "4"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: ""
 app:
   envs:
   - GO_PROJECT_PATH: github.com/bitrise-team/bitrise-step-analytics
@@ -8,6 +9,17 @@ app:
   - PORT: 3012
   - HEROKU_APP_NAME: bitrise-step-analytics
 workflows:
+  deploy-to-heroku:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+
+            heroku container:login
+            heroku container:push web -R -a $HEROKU_APP_NAME
+            heroku container:release web -a $HEROKU_APP_NAME
   start:
     steps:
     - script:
@@ -22,14 +34,47 @@ workflows:
               go install
               bitrise-step-analytics
             fi
-  deploy-to-heroku:
+  test:
     steps:
     - script:
+        title: GOLIST_WITHOUT_VENDOR
         inputs:
-        - content: |-
+        - content: |
+            set -ex
+            no_vendor_paths="$(go list ./... | grep -v vendor)"
+            envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
+    - script:
+        title: Go Test
+        inputs:
+        - content: |
             #!/bin/bash
             set -ex
+            go test ./...
+    - script:
+        title: Go Vet
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -ex
+            go vet $GOLIST_WITHOUT_VENDOR
+    - script:
+        title: Err check
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -ex
+            go get github.com/kisielk/errcheck
+            errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
+    - script:
+        title: Go Lint
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -ex
+            go get -u golang.org/x/lint/golint
 
-            heroku container:login
-            heroku container:push web -R -a $HEROKU_APP_NAME
-            heroku container:release web -a $HEROKU_APP_NAME
+            # lint
+            while read -r line; do
+              echo "-> Linting: $line"
+              golint -set_exit_status $line
+            done <<< "$GOLIST_WITHOUT_VENDOR"

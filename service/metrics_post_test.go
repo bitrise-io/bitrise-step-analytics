@@ -24,7 +24,7 @@ func Test_MetricsPostHandler(t *testing.T) {
 		{
 			testName: "ok, minimal",
 			requestBody: `{` +
-				`"app_id":"app-slug","stack_id":"standard1","platform":"ios","cli_version":"1.21","status":"success","start_time":"2019-01-03T18:11:53.171409Z","run_time":121` +
+				`"app_slug":"app-slug","build_slug":"build-slug","stack_id":"standard1","platform":"ios","cli_version":"1.21","status":"success","start_time":"2019-01-03T18:11:53.171409Z","run_time":121` +
 				`,"step_analytics":[` +
 				`{"step_id":"deploy_to_bitrise_io","status":"0","start_time":"2019-01-03T18:11:53.171409Z","run_time":120}` +
 				`,{"step_id":"script","status":"0","start_time":"2019-01-03T18:11:53.171409Z","run_time":210}` +

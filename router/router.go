@@ -13,7 +13,7 @@ import (
 
 // New ...
 func New(config configs.ConfigModel) *mux.Router {
-	r := mux.NewRouter(mux.WithServiceName("steps-mux")).StrictSlash(true)
+	r := mux.NewRouter(mux.WithServiceName("step-analytics-mux")).StrictSlash(true)
 	logger, err := zap.NewProduction()
 	if err != nil {
 		fmt.Println("Failed to initialize zap logger")
@@ -25,7 +25,7 @@ func New(config configs.ConfigModel) *mux.Router {
 	}
 
 	r.Handle("/", middlewareProvider.CommonMiddleware().ThenFunc(service.RootHandler))
-	r.Handle("/metrics", middlewareProvider.CommonMiddleware().Then(
+	r.Handle("/metrics", middlewareProvider.MiddlewareWithDogStatsDMetrics().Then(
 		httpresponse.InternalErrHandlerFuncAdapter(service.MetricsPostHandler))).Methods("POST")
 	r.Handle("/logs", middlewareProvider.MiddlewareWithLoggerProvider().Then(
 		httpresponse.InternalErrHandlerFuncAdapter(service.CustomLogsPostHandler))).Methods("POST")

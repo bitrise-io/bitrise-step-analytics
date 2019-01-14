@@ -2,10 +2,10 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/bitrise-io/api-utils/httpresponse"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -30,12 +30,16 @@ func CustomLogsPostHandler(w http.ResponseWriter, r *http.Request) error {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, JSON decode failed")
 	}
 
-	loggerProvider, err := GetLoggerProviderFromContext(r.Context())
+	logger, err := zap.NewProduction()
 	if err != nil {
-		return errors.WithStack(err)
+		fmt.Printf("Failed to initialize logger: %s", err)
 	}
-	logger := loggerProvider.GetLogger()
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Failed to sync logger: %s", err)
+		}
+	}()
 
 	switch logData.LogLevel {
 	case logLvlInfo:
