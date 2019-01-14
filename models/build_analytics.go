@@ -7,7 +7,8 @@ import (
 
 // BuildAnalytics ...
 type BuildAnalytics struct {
-	AppID      string        `json:"app_id"`
+	AppSlug    string        `json:"app_slug"`
+	BuildSlug  string        `json:"build_slug"`
 	StackID    string        `json:"stack_id"`
 	Platform   string        `json:"platform"`
 	CLIVersion string        `json:"cli_version"`
@@ -26,7 +27,8 @@ func (a BuildAnalytics) GetProfileName() string {
 // GetTagArray ...
 func (a BuildAnalytics) GetTagArray() []string {
 	return []string{
-		fmt.Sprintf("app_id:%s", a.AppID),
+		fmt.Sprintf("app_slug:%s", a.AppSlug),
+		fmt.Sprintf("build_slug:%s", a.BuildSlug),
 		fmt.Sprintf("stack_id:%s", a.StackID),
 		fmt.Sprintf("platform:%s", a.Platform),
 		fmt.Sprintf("cli_version:%s", a.CLIVersion),
