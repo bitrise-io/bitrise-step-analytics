@@ -88,12 +88,7 @@ func (b *DogStatsDMetrics) Track(t Trackable, metricName string) {
 
 	tags := b.createTagArray(t, fmt.Sprintf("name:%s", t.GetProfileName()))
 
-	if err := b.client.Gauge(metricName, float64(t.GetRunTime()), tags, 1.0); err == nil {
-		logger.Error("DogStatsD Diagnostic backend has failed to track",
-			zap.String("profile_name", t.GetProfileName()),
-			zap.Any("error_details", errors.WithStack(err)),
-		)
-	} else {
+	if err := b.client.Gauge(metricName, float64(t.GetRunTime()), tags, 1.0); err != nil {
 		logger.Error("DogStatsD Diagnostic backend has failed to track",
 			zap.String("profile_name", t.GetProfileName()),
 			zap.Any("error_details", errors.WithStack(err)),
