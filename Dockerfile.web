@@ -1,9 +1,9 @@
 FROM golang:1.11 as builder
 
-COPY . /go/src/github.com/bitrise-team/bitrise-step-analytics
+COPY . /go/src/github.com/bitrise-io/bitrise-step-analytics
 
 RUN mkdir -p bin \
-    && cd /go/src/github.com/bitrise-team/bitrise-step-analytics \
+    && cd /go/src/github.com/bitrise-io/bitrise-step-analytics \
     && CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o /go/bin/bitrise-step-analytics
 
 

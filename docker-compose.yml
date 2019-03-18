@@ -4,7 +4,7 @@ services:
     build: .
     command: gin --immediate --appPort $PORT
     volumes:
-      - .:/bitrise/go/src/github.com/bitrise-team/bitrise-step-analytics
+      - .:/bitrise/go/src/github.com/bitrise-io/bitrise-step-analytics
     ports:
       - "3012:3012"
     environment:

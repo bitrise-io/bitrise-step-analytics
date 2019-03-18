@@ -6,8 +6,8 @@ import (
 	"reflect"
 
 	"github.com/bitrise-io/api-utils/httpresponse"
-	"github.com/bitrise-team/bitrise-step-analytics/metrics"
-	"github.com/bitrise-team/bitrise-step-analytics/models"
+	"github.com/bitrise-io/bitrise-step-analytics/metrics"
+	"github.com/bitrise-io/bitrise-step-analytics/models"
 	"github.com/pkg/errors"
 )
 
