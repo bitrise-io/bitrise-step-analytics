@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/bitrise-team/bitrise-step-analytics/service"
+	"github.com/bitrise-io/bitrise-step-analytics/service"
 	"github.com/stretchr/testify/require"
 )
 

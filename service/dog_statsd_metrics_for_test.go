@@ -1,6 +1,6 @@
 package service_test
 
-import "github.com/bitrise-team/bitrise-step-analytics/metrics"
+import "github.com/bitrise-io/bitrise-step-analytics/metrics"
 
 type testDogStatsdMetrics struct{}
 

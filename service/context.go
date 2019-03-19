@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/bitrise-team/bitrise-step-analytics/metrics"
+	"github.com/bitrise-io/bitrise-step-analytics/metrics"
 )
 
 type tRequestContextKey string

@@ -3,7 +3,7 @@ package service
 import (
 	"net/http"
 
-	"github.com/bitrise-team/bitrise-step-analytics/metrics"
+	"github.com/bitrise-io/bitrise-step-analytics/metrics"
 	"github.com/justinas/alice"
 	"github.com/rs/cors"
 )

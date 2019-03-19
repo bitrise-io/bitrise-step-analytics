@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bitrise-team/bitrise-step-analytics/configs"
-	"github.com/bitrise-team/bitrise-step-analytics/router"
+	"github.com/bitrise-io/bitrise-step-analytics/configs"
+	"github.com/bitrise-io/bitrise-step-analytics/router"
 	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
