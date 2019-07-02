@@ -7,14 +7,16 @@ import (
 
 // BuildAnalytics ...
 type BuildAnalytics struct {
-	AppSlug    string        `json:"app_slug"`
-	BuildSlug  string        `json:"build_slug"`
-	StackID    string        `json:"stack_id"`
-	Platform   string        `json:"platform"`
-	CLIVersion string        `json:"cli_version"`
-	Status     string        `json:"status"`
-	StartTime  time.Time     `json:"start_time"`
-	Runtime    time.Duration `json:"run_time"`
+	AppSlug      string        `json:"app_slug"`
+	BuildSlug    string        `json:"build_slug"`
+	StackID      string        `json:"stack_id"`
+	Platform     string        `json:"platform"`
+	CLIVersion   string        `json:"cli_version"`
+	Status       string        `json:"status"`
+	StartTime    time.Time     `json:"start_time"`
+	Runtime      time.Duration `json:"run_time"`
+	RepositoryID string        `json:"repo_id"`
+	WorkflowName string        `json:"workflow_name"`
 
 	StepAnalytics []StepAnalytics `json:"step_analytics"`
 }
@@ -33,6 +35,8 @@ func (a BuildAnalytics) GetTagArray() []string {
 		fmt.Sprintf("platform:%s", a.Platform),
 		fmt.Sprintf("cli_version:%s", a.CLIVersion),
 		fmt.Sprintf("status:%s", a.Status),
+		fmt.Sprintf("repository_id:%s", a.RepositoryID),
+		fmt.Sprintf("workflow_name:%s", a.Status),
 	}
 }
 
