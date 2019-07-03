@@ -7,10 +7,13 @@ import (
 
 // StepAnalytics ...
 type StepAnalytics struct {
-	StepID    string        `json:"step_id"`
-	Status    string        `json:"status"`
-	StartTime time.Time     `json:"start_time"`
-	Runtime   time.Duration `json:"run_time"`
+	StepID      string        `json:"step_id"`
+	StepTitle   *string       `json:"step_title"`
+	StepVersion string        `json:"step_verion"`
+	StepSource  *string       `json:"step_source"`
+	Status      string        `json:"status"`
+	StartTime   time.Time     `json:"start_time"`
+	Runtime     time.Duration `json:"run_time"`
 }
 
 // GetProfileName ...
@@ -22,6 +25,9 @@ func (a StepAnalytics) GetProfileName() string {
 func (a StepAnalytics) GetTagArray() []string {
 	return []string{
 		fmt.Sprintf("step_id:%s", a.StepID),
+		fmt.Sprintf("step_title:%v", a.StepTitle),
+		fmt.Sprintf("step_verion:%s", a.StepVersion),
+		fmt.Sprintf("step_source:%v", a.StepSource),
 		fmt.Sprintf("status:%s", a.Status),
 	}
 }
