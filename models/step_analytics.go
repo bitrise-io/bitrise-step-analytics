@@ -25,6 +25,9 @@ func (a StepAnalytics) GetProfileName() string {
 func (a StepAnalytics) GetTagArray() []string {
 	return []string{
 		fmt.Sprintf("step_id:%s", a.StepID),
+		fmt.Sprintf("step_title:%v", a.StepTitle),
+		fmt.Sprintf("step_verion:%s", a.StepVersion),
+		fmt.Sprintf("step_source:%v", a.StepSource),
 		fmt.Sprintf("status:%s", a.Status),
 	}
 }
