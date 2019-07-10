@@ -8,9 +8,9 @@ import (
 // StepAnalytics ...
 type StepAnalytics struct {
 	StepID      string        `json:"step_id"`
-	StepTitle   *string       `json:"step_title"`
+	StepTitle   string        `json:"step_title"`
 	StepVersion string        `json:"step_verion"`
-	StepSource  *string       `json:"step_source"`
+	StepSource  string        `json:"step_source"`
 	Status      string        `json:"status"`
 	StartTime   time.Time     `json:"start_time"`
 	Runtime     time.Duration `json:"run_time"`
