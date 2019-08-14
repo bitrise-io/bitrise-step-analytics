@@ -49,7 +49,7 @@ func Test_MetricsPostHandler(t *testing.T) {
 			r, err := http.NewRequest("POST", "/metrics", bytes.NewBuffer([]byte(tc.requestBody)))
 			require.NoError(t, err)
 
-			r = r.WithContext(service.ContextWithDogStatsDMetrics(r.Context(), &testDogStatsdMetrics{}))
+			r = r.WithContext(service.ContextWithClient(r.Context(), &testClient{}))
 
 			rr := httptest.NewRecorder()
 			internalServerError := handler(rr, r)

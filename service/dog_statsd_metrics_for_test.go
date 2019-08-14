@@ -2,8 +2,8 @@ package service_test
 
 import "github.com/bitrise-io/bitrise-step-analytics/metrics"
 
-type testDogStatsdMetrics struct{}
+type testClient struct{}
 
-func (m *testDogStatsdMetrics) Track(t metrics.Trackable, metricName string) {}
+func (m *testClient) Track(t metrics.Trackable, metricName string) {}
 
-func (m *testDogStatsdMetrics) Close() {}
+func (m *testClient) Close() {}

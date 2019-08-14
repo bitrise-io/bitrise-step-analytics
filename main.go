@@ -30,8 +30,7 @@ func initilize() error {
 }
 
 func main() {
-	err := initilize()
-	if err != nil {
+	if err := initilize(); err != nil {
 		log.Fatalf(" [!] Exception: Failed to initialize Bitrise Step Analytics: %+v", err)
 	}
 }

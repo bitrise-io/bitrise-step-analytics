@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"github.com/bitrise-io/api-utils/httpresponse"
-	"github.com/bitrise-io/bitrise-step-analytics/metrics"
 	"github.com/bitrise-io/bitrise-step-analytics/models"
 	"github.com/pkg/errors"
 )
@@ -22,14 +21,16 @@ func MetricsPostHandler(w http.ResponseWriter, r *http.Request) error {
 	if reflect.DeepEqual(buildAnalytics, models.BuildAnalytics{}) {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide metrics data")
 	}
-	dogstatsd, err := GetDogStatsDMetricsFromContext(r.Context())
+	dogstatsd, err := GetClientFromContext(r.Context())
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	dogstatsd.Track(buildAnalytics, metrics.DogStatsDBuildCounterMetricName)
+	dogstatsd.Track(buildAnalytics)
 	for _, aStepAnalytic := range buildAnalytics.StepAnalytics {
-		dogstatsd.Track(aStepAnalytic, metrics.DogStatsDStepCounterMetricName)
+		aStepAnalytic.AppSlug = buildAnalytics.AppSlug
+		aStepAnalytic.BuildSlug = buildAnalytics.BuildSlug
+		dogstatsd.Track(aStepAnalytic)
 	}
 
 	return httpresponse.RespondWithSuccess(w, map[string]string{"message": "ok"})

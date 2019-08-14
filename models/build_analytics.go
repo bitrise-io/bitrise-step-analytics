@@ -1,46 +1,35 @@
 package models
 
 import (
-	"fmt"
 	"time"
 )
 
 // BuildAnalytics ...
 type BuildAnalytics struct {
-	AppSlug      string        `json:"app_slug"`
-	BuildSlug    string        `json:"build_slug"`
-	StackID      string        `json:"stack_id"`
-	Platform     string        `json:"platform"`
-	CLIVersion   string        `json:"cli_version"`
-	Status       string        `json:"status"`
-	StartTime    time.Time     `json:"start_time"`
-	Runtime      time.Duration `json:"run_time"`
-	RepositoryID string        `json:"repo_id"`
-	WorkflowName string        `json:"workflow_name"`
-
+	Status        string          `json:"status" track:"status"`
+	AppSlug       string          `json:"app_slug" track:"app_slug"`
+	Runtime       time.Duration   `json:"run_time" track:"run_time"`
+	StackID       string          `json:"stack_id" track:"stack_id"`
+	Platform      string          `json:"platform" track:"platform"`
+	BuildSlug     string          `json:"build_slug" track:"build_slug"`
+	StartTime     time.Time       `json:"start_time" track:"start_time"`
+	CLIVersion    string          `json:"cli_version" track:"cli_version"`
+	RepositoryID  string          `json:"repo_id" track:"repository_id"`
+	WorkflowName  string          `json:"workflow_name" track:"workflow_name"`
 	StepAnalytics []StepAnalytics `json:"step_analytics"`
 }
 
-// GetProfileName ...
-func (a BuildAnalytics) GetProfileName() string {
-	return "build"
+// Event ...
+func (a BuildAnalytics) Event() string {
+	return "build_finished"
 }
 
-// GetTagArray ...
-func (a BuildAnalytics) GetTagArray() []string {
-	return []string{
-		fmt.Sprintf("app_slug:%s", a.AppSlug),
-		fmt.Sprintf("build_slug:%s", a.BuildSlug),
-		fmt.Sprintf("stack_id:%s", a.StackID),
-		fmt.Sprintf("platform:%s", a.Platform),
-		fmt.Sprintf("cli_version:%s", a.CLIVersion),
-		fmt.Sprintf("status:%s", a.Status),
-		fmt.Sprintf("repository_id:%s", a.RepositoryID),
-		fmt.Sprintf("workflow_name:%s", a.Status),
-	}
+// Model ...
+func (a BuildAnalytics) Model() interface{} {
+	return a
 }
 
-// GetRunTime ...
-func (a BuildAnalytics) GetRunTime() time.Duration {
-	return a.Runtime
+// UserID ...
+func (a BuildAnalytics) UserID() string {
+	return a.AppSlug
 }

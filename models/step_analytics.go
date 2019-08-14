@@ -1,38 +1,33 @@
 package models
 
 import (
-	"fmt"
 	"time"
 )
 
 // StepAnalytics ...
 type StepAnalytics struct {
-	StepID      string        `json:"step_id"`
-	StepTitle   string        `json:"step_title"`
-	StepVersion string        `json:"step_verion"`
-	StepSource  string        `json:"step_source"`
-	Status      string        `json:"status"`
-	StartTime   time.Time     `json:"start_time"`
-	Runtime     time.Duration `json:"run_time"`
+	AppSlug     string        `json:"-"`
+	BuildSlug   string        `json:"-" track:"build_slug"`
+	StepID      string        `json:"step_id" track:"step_id"`
+	StepTitle   string        `json:"step_title" track:"step_title"`
+	StepVersion string        `json:"step_verion" track:"step_verion"`
+	StepSource  string        `json:"step_source" track:"step_source"`
+	Status      string        `json:"status" track:"status"`
+	StartTime   time.Time     `json:"start_time" track:"start_time"`
+	Runtime     time.Duration `json:"run_time" track:"run_time"`
 }
 
-// GetProfileName ...
-func (a StepAnalytics) GetProfileName() string {
-	return "step"
+// Event ...
+func (a StepAnalytics) Event() string {
+	return "step_finished"
 }
 
-// GetTagArray ...
-func (a StepAnalytics) GetTagArray() []string {
-	return []string{
-		fmt.Sprintf("step_id:%s", a.StepID),
-		fmt.Sprintf("step_title:%v", a.StepTitle),
-		fmt.Sprintf("step_verion:%s", a.StepVersion),
-		fmt.Sprintf("step_source:%v", a.StepSource),
-		fmt.Sprintf("status:%s", a.Status),
-	}
+// Model ...
+func (a StepAnalytics) Model() interface{} {
+	return a
 }
 
-// GetRunTime ...
-func (a StepAnalytics) GetRunTime() time.Duration {
-	return a.Runtime
+// UserID ...
+func (a StepAnalytics) UserID() string {
+	return a.AppSlug
 }
