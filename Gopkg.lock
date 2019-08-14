@@ -2,93 +2,130 @@
 
 
 [[projects]]
-  name = "github.com/DataDog/datadog-go"
-  packages = ["statsd"]
-  revision = "e67964b4021ad3a334e748e8811eb3cd6becbc6e"
-  version = "2.1.0"
-
-[[projects]]
   branch = "master"
+  digest = "1:db2dedd60c1c04fcd622674e2c578a38a8fea394aa2f8975e985a2163973a7c0"
   name = "github.com/bitrise-io/api-utils"
   packages = ["httpresponse"]
+  pruneopts = "UT"
   revision = "007402a6180d9c0d16cc77823ee43beda8b3782e"
 
 [[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = "UT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
 
 [[projects]]
+  digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
   name = "github.com/gorilla/context"
   packages = ["."]
+  pruneopts = "UT"
   revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
   version = "v1.1.1"
 
 [[projects]]
+  digest = "1:e73f5b0152105f18bc131fba127d9949305c8693f8a762588a82a48f61756f5f"
   name = "github.com/gorilla/mux"
   packages = ["."]
+  pruneopts = "UT"
   revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
   version = "v1.6.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:e74fa8e635591eb1ad79e8e711bff8bea4e12e9737563daf12af325c6ea206e4"
   name = "github.com/justinas/alice"
   packages = ["."]
+  pruneopts = "UT"
   revision = "03f45bd4b7dad4734bc4620e46a35789349abb20"
 
 [[projects]]
+  digest = "1:5e73b34a27d827212102605789de00bd411b2e434812133c83935fe9897c75e1"
   name = "github.com/philhofer/fwd"
   packages = ["."]
+  pruneopts = "UT"
   revision = "bb6d471dc95d4fe11e432687f8b70ff496cf3136"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = "UT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:9695b472826ca23e521d650849fefac3102dddbf841c9a4b35fb9d3ed5d17011"
   name = "github.com/rs/cors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "ca016a06a5753f8ba03029c0aa5e54afb1bf713f"
   version = "v1.4.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:ec22607298efbafb122c4e4b2ca8ceb6c4ec1ba72e74705b84f9f2ce8ee77984"
+  name = "github.com/segmentio/backo-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "204274ad699c0983a70203a566887f17a717fef4"
+
+[[projects]]
+  digest = "1:c40d65817cdd41fac9aa7af8bed56927bb2d6d47e4fea566a74880f5c2b1c41e"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
-    "require"
+    "require",
   ]
+  pruneopts = "UT"
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
 
 [[projects]]
+  digest = "1:c97e8a5e5c435c3287f581cdb4441ba34577ec6ead8422bfedafa6269af7abf6"
   name = "github.com/tinylib/msgp"
   packages = ["msgp"]
+  pruneopts = "UT"
   revision = "af6442a0fcf6e2a1b824f70dd0c734f01e817751"
   version = "v1.1.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:2f9538da7381bb981fb8451b2b0fb304c2bc7f1724228dc336a8f002e6fec704"
+  name = "github.com/xtgo/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a0b114877d4caeffbd7f87e3757c17fce570fea7"
+
+[[projects]]
+  digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"
   name = "go.uber.org/atomic"
   packages = ["."]
+  pruneopts = "UT"
   revision = "1ea20fb1cbb1cc08cbd0d913a96dead89aa18289"
   version = "v1.3.2"
 
 [[projects]]
+  digest = "1:60bf2a5e347af463c42ed31a493d817f8a72f102543060ed992754e689805d1a"
   name = "go.uber.org/multierr"
   packages = ["."]
+  pruneopts = "UT"
   revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:adccce69c151272d5053505aee552c6a1ac4e7bf6d18f0206ed7453187f6284d"
   name = "go.uber.org/zap"
   packages = [
     ".",
@@ -97,18 +134,22 @@
     "internal/color",
     "internal/exit",
     "zapcore",
-    "zaptest/observer"
+    "zaptest/observer",
   ]
+  pruneopts = "UT"
   revision = "ff33455a0e382e8a81d14dd7c922020b6b5e7982"
   version = "v1.9.1"
 
 [[projects]]
   branch = "master"
+  digest = "1:68a4638398cf8c864a6aa50c8853ebe7935f939aa3acf7e44cb35b67852e9fef"
   name = "golang.org/x/sys"
   packages = ["windows"]
+  pruneopts = "UT"
   revision = "dcdaa6325bcb8d3c07805583fe12153f08a41e2b"
 
 [[projects]]
+  digest = "1:523a3cbf40c4470f969f8ce36b4113a82b0011c64313fb646594bcf1ec5fa2db"
   name = "gopkg.in/DataDog/dd-trace-go.v1"
   packages = [
     "contrib/gorilla/mux",
@@ -117,14 +158,35 @@
     "ddtrace",
     "ddtrace/ext",
     "ddtrace/internal",
-    "ddtrace/tracer"
+    "ddtrace/tracer",
   ]
+  pruneopts = "UT"
   revision = "5a8139286014811d2bccd5ef67ec4844ea0998a7"
   version = "v1.7.0"
+
+[[projects]]
+  digest = "1:fceac7b84ff0319c9b9775647e6b30758bb0e8550852cf88a2a5f3e43d6dbbf8"
+  name = "gopkg.in/segmentio/analytics-go.v3"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3b00f71eadd594f41e9b6af6d5198aca38ccaca5"
+  version = "v3.0.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0d83e769e72b4eabcbd51dacb47464068c5bb9a6a7b9c42545d1ba480cb31508"
+  input-imports = [
+    "github.com/bitrise-io/api-utils/httpresponse",
+    "github.com/justinas/alice",
+    "github.com/pkg/errors",
+    "github.com/rs/cors",
+    "github.com/stretchr/testify/require",
+    "go.uber.org/zap",
+    "go.uber.org/zap/zapcore",
+    "go.uber.org/zap/zaptest/observer",
+    "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux",
+    "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer",
+    "gopkg.in/segmentio/analytics-go.v3",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
