@@ -5,15 +5,3 @@ COPY . /go/src/github.com/bitrise-io/bitrise-step-analytics
 RUN mkdir -p bin \
     && cd /go/src/github.com/bitrise-io/bitrise-step-analytics \
     && CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o /go/bin/bitrise-step-analytics
-
-# Install deps and configs
-COPY ./release/heroku/common .
-# Configure the agent
-ENV S6_LOGGING 0
-ENV DD_LOG_LEVEL ERROR
-# Enable APM
-ENV DD_APM_ENABLED true
-ENV DD_TAGS ''
-# Log rotation: 10 bundles retained, rotate at 10MB size
-ENV S6_LOGGING_SCRIPT '-b n10 s10000000'
-COPY --from=builder /go/bin/bitrise-step-analytics /opt/bitrise/bitrise-step-analytics
