@@ -12,8 +12,8 @@ type tRequestContextKey string
 const (
 	// ContextKeyLoggerProvider ...
 	ContextKeyLoggerProvider tRequestContextKey = "rck-logger-provider"
-	// ContextKeyDogStatsDMetrics ...
-	ContextKeyDogStatsDMetrics tRequestContextKey = "rck-dogstatsd-metrics"
+	// ContextKeyClient ...
+	ContextKeyClient tRequestContextKey = "rck-dogstatsd-metrics"
 )
 
 // GetLoggerProviderFromContext ...
@@ -30,16 +30,16 @@ func ContextWithLoggerProvider(ctx context.Context, lp LoggerInterface) context.
 	return context.WithValue(ctx, ContextKeyLoggerProvider, lp)
 }
 
-// GetDogStatsDMetricsFromContext ...
-func GetDogStatsDMetricsFromContext(ctx context.Context) (metrics.DogStatsDInterface, error) {
-	dsdi, ok := ctx.Value(ContextKeyDogStatsDMetrics).(metrics.DogStatsDInterface)
+// GetClientFromContext ...
+func GetClientFromContext(ctx context.Context) (metrics.Interface, error) {
+	dsdi, ok := ctx.Value(ContextKeyClient).(metrics.Interface)
 	if !ok {
 		return dsdi, errors.New("DogStatsD not found in Context")
 	}
 	return dsdi, nil
 }
 
-// ContextWithDogStatsDMetrics ...
-func ContextWithDogStatsDMetrics(ctx context.Context, dsdi metrics.DogStatsDInterface) context.Context {
-	return context.WithValue(ctx, ContextKeyDogStatsDMetrics, dsdi)
+// ContextWithClient ...
+func ContextWithClient(ctx context.Context, dsdi metrics.Interface) context.Context {
+	return context.WithValue(ctx, ContextKeyClient, dsdi)
 }

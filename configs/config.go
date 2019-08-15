@@ -7,8 +7,7 @@ import (
 
 // ConfigModel ...
 type ConfigModel struct {
-	Port    string
-	EnvMode string
+	Port, EnvMode, SegmentWriteKey string
 }
 
 // Validate ...
@@ -19,13 +18,17 @@ func (c ConfigModel) Validate() error {
 	if len(c.EnvMode) < 1 {
 		return errors.New("Env mode must be specified")
 	}
+	if len(c.SegmentWriteKey) < 1 {
+		return errors.New("Segment write key must be specified")
+	}
 	return nil
 }
 
 func createFromEnvs() (ConfigModel, error) {
 	c := ConfigModel{
-		Port:    os.Getenv("PORT"),
-		EnvMode: os.Getenv("GO_ENV"),
+		Port:            os.Getenv("PORT"),
+		EnvMode:         os.Getenv("GO_ENV"),
+		SegmentWriteKey: os.Getenv("SEGMENT_WRITE_KEY"),
 	}
 	return c, nil
 }

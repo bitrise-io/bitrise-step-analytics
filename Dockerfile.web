@@ -6,8 +6,6 @@ RUN mkdir -p bin \
     && cd /go/src/github.com/bitrise-io/bitrise-step-analytics \
     && CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o /go/bin/bitrise-step-analytics
 
-
-FROM datadog/agent:6.5.2
 # Install deps and configs
 COPY ./release/heroku/common .
 # Configure the agent

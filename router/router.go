@@ -20,12 +20,12 @@ func New(config configs.ConfigModel) *mux.Router {
 	}
 
 	middlewareProvider := service.MiddlewareProvider{
-		LoggerProvider:   service.NewLoggerProvider(logger),
-		DogStatsDMetrics: metrics.NewDogStatsDMetrics(""),
+		LoggerProvider: service.NewLoggerProvider(logger),
+		Client:         metrics.NewClient(config.SegmentWriteKey),
 	}
 
 	r.Handle("/", middlewareProvider.CommonMiddleware().ThenFunc(service.RootHandler))
-	r.Handle("/metrics", middlewareProvider.MiddlewareWithDogStatsDMetrics().Then(
+	r.Handle("/metrics", middlewareProvider.MiddlewareWithClient().Then(
 		httpresponse.InternalErrHandlerFuncAdapter(service.MetricsPostHandler))).Methods("POST")
 	r.Handle("/logs", middlewareProvider.MiddlewareWithLoggerProvider().Then(
 		httpresponse.InternalErrHandlerFuncAdapter(service.CustomLogsPostHandler))).Methods("POST")
