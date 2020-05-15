@@ -36,45 +36,7 @@ workflows:
             fi
   test:
     steps:
-    - script:
-        title: GOLIST_WITHOUT_VENDOR
-        inputs:
-        - content: |
-            set -ex
-            no_vendor_paths="$(go list ./... | grep -v vendor)"
-            envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
-    - script:
-        title: Go Test
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -ex
-            go test ./...
-    - script:
-        title: Go Vet
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -ex
-            go vet $GOLIST_WITHOUT_VENDOR
-    - script:
-        title: Err check
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -ex
-            go get github.com/kisielk/errcheck
-            errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
-    - script:
-        title: Go Lint
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -ex
-            go get -u golang.org/x/lint/golint
-
-            # lint
-            while read -r line; do
-              echo "-> Linting: $line"
-              golint -set_exit_status $line
-            done <<< "$GOLIST_WITHOUT_VENDOR"
+    - go-list:
+    - golint:
+    - errcheck:
+    - go-test:
