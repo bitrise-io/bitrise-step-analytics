@@ -6,16 +6,19 @@ import (
 
 // BuildAnalytics ...
 type BuildAnalytics struct {
-	Status        string          `json:"status" track:"status"`
-	AppSlug       string          `json:"app_slug" track:"app_slug"`
-	Runtime       time.Duration   `json:"run_time" track:"run_time"`
-	StackID       string          `json:"stack_id" track:"stack_id"`
-	Platform      string          `json:"platform" track:"platform"`
-	BuildSlug     string          `json:"build_slug" track:"build_slug"`
-	StartTime     time.Time       `json:"start_time" track:"start_time"`
-	CLIVersion    string          `json:"cli_version" track:"cli_version"`
-	RepositoryID  string          `json:"repo_id" track:"repository_id"`
-	WorkflowName  string          `json:"workflow_name" track:"workflow_name"`
+	AppSlug      string `json:"app_slug" track:"app_slug"`
+	BuildSlug    string `json:"build_slug" track:"build_slug"`
+	RepositoryID string `json:"repo_id" track:"repository_id"`
+
+	StackID      string `json:"stack_id" track:"stack_id"`
+	Platform     string `json:"platform" track:"platform"`
+	CLIVersion   string `json:"cli_version" track:"cli_version"`
+	WorkflowName string `json:"workflow_name" track:"workflow_name"`
+
+	Status    string        `json:"status" track:"status"`
+	Runtime   time.Duration `json:"run_time" track:"run_time"`
+	StartTime time.Time     `json:"start_time" track:"start_time"`
+
 	StepAnalytics []StepAnalytics `json:"step_analytics"`
 }
 
