@@ -12,7 +12,7 @@ type StepAnalytics struct {
 
 	StepID      string            `json:"step_id" track:"step_id"`
 	StepTitle   string            `json:"step_title" track:"step_title"`
-	StepVersion string            `json:"step_verion" track:"step_verion"`
+	StepVersion string            `json:"step_version" track:"step_version"`
 	StepSource  string            `json:"step_source" track:"step_source"`
 	StepInputs  map[string]string `json:"step_inputs" track:"step_inputs"`
 
