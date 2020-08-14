@@ -23,21 +23,38 @@ func Test_CustomLogsPostHandler(t *testing.T) {
 	}{
 		{
 			testName:           "ok, minimal",
-			requestBody:        `{}`,
+			requestBody:        `{"log_level":"warn","message":"test","data":{"step_id":"test-step-id","tag":"test-tag"}}`,
 			expectedStatusCode: http.StatusOK,
 			expectedBody:       `{"message":"ok"}` + "\n",
 		},
 		{
-			testName:           "ok, more complex",
-			expectedLogContent: map[string]interface{}{"key1": "value1"},
-			requestBody:        `{"log_level":"info","message":"test message","data":{"key1":"value1"}}`,
-			expectedStatusCode: http.StatusOK,
-			expectedBody:       `{"message":"ok"}` + "\n",
-		},
-		{
-			testName:           "when request body isn't a valid JSON, it retrieves bad reqest error",
+			testName:           "error, when request body isn't a valid JSON, it retrieves bad reqest error",
 			expectedStatusCode: http.StatusBadRequest,
 			expectedBody:       `{"message":"Invalid request body, JSON decode failed"}` + "\n",
+		},
+		{
+			testName:           "error, when all required param missing",
+			requestBody:        `{}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide log_level"}` + "\n",
+		},
+		{
+			testName:           "error, when log level set",
+			requestBody:        `{"log_level":"warn"}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide message"}` + "\n",
+		},
+		{
+			testName:           "error, when message also set",
+			requestBody:        `{"log_level":"warn","message":"test"}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide data.step_id"}` + "\n",
+		},
+		{
+			testName:           "error, when step id also set",
+			requestBody:        `{"log_level":"warn","message":"test","data":{"step_id":"test-step-id"}}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide data.tag"}` + "\n",
 		},
 	} {
 		t.Run(tc.testName, func(t *testing.T) {

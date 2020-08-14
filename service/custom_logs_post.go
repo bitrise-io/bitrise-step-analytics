@@ -17,21 +17,6 @@ func CustomLogsPostHandler(w http.ResponseWriter, r *http.Request) error {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, JSON decode failed")
 	}
 
-	if err := validateContent(w, log); err != nil {
-		return err
-	}
-
-	dogstatsd, err := GetClientFromContext(r.Context())
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	dogstatsd.Track(log)
-
-	return httpresponse.RespondWithSuccess(w, map[string]string{"message": "ok"})
-}
-
-func validateContent(w http.ResponseWriter, log models.RemoteLog) error {
 	if len(log.LogLevel) == 0 {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide log_level")
 	}
@@ -44,5 +29,13 @@ func validateContent(w http.ResponseWriter, log models.RemoteLog) error {
 	if _, ok := log.Data["tag"].(string); !ok {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide data.tag")
 	}
-	return nil
+
+	dogstatsd, err := GetClientFromContext(r.Context())
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	dogstatsd.Track(log)
+
+	return httpresponse.RespondWithSuccess(w, map[string]string{"message": "ok"})
 }
