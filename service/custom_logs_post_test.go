@@ -8,9 +8,6 @@ import (
 
 	"github.com/bitrise-io/bitrise-step-analytics/service"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 )
 
 func Test_CustomLogsPostHandler(t *testing.T) {
@@ -44,22 +41,13 @@ func Test_CustomLogsPostHandler(t *testing.T) {
 		},
 	} {
 		t.Run(tc.testName, func(t *testing.T) {
-			core, recorded := observer.New(zapcore.InfoLevel)
-			zl := zap.New(core)
-
 			r, err := http.NewRequest("POST", "/logs", bytes.NewBuffer([]byte(tc.requestBody)))
 			require.NoError(t, err)
 
-			r = r.WithContext(service.ContextWithLoggerProvider(r.Context(), service.NewLoggerProvider(zl)))
+			r = r.WithContext(service.ContextWithClient(r.Context(), &testClient{}))
 
 			rr := httptest.NewRecorder()
 			internalServerError := handler(rr, r)
-
-			for _, logs := range recorded.All() {
-				for _, field := range logs.Context {
-					require.Equal(t, tc.expectedLogContent, field.Interface)
-				}
-			}
 
 			if tc.expectedBody != "" {
 				require.Equal(t, tc.expectedBody, rr.Body.String())
