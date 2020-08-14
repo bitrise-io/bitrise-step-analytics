@@ -83,3 +83,17 @@ func Test_CustomLogsPostHandler(t *testing.T) {
 		})
 	}
 }
+
+func Test_CustomLogsPostHandlerInvalidContext(t *testing.T) {
+	handler := service.CustomLogsPostHandler
+
+	r, err := http.NewRequest("POST", "/logs", bytes.NewBuffer([]byte(`{"log_level":"warn","message":"test","data":{"step_id":"test-step-id","tag":"test-tag"}}`)))
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	internalServerError := handler(rr, r)
+	expectedInternalErr := "DogStatsD not found in Context"
+
+	require.EqualError(t, internalServerError, expectedInternalErr,
+		"Expected internal err: %s", expectedInternalErr)
+}
