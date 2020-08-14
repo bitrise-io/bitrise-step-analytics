@@ -19,6 +19,8 @@ func (a RemoteLog) Model() interface{} {
 
 // UserID ...
 func (a RemoteLog) UserID() string {
-	stepID, _ := a.Data["step_id"].(string)
-	return stepID
+	if stepID, ok := a.Data["step_id"].(string); ok {
+		return stepID
+	}
+	return ""
 }
