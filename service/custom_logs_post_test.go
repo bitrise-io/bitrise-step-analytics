@@ -39,7 +39,7 @@ func Test_CustomLogsPostHandler(t *testing.T) {
 			expectedBody:       `{"message":"Invalid request body, please provide log_level"}` + "\n",
 		},
 		{
-			testName:           "error, when log level set",
+			testName:           "error, missing message",
 			requestBody:        `{"log_level":"warn"}`,
 			expectedStatusCode: http.StatusBadRequest,
 			expectedBody:       `{"message":"Invalid request body, please provide message"}` + "\n",

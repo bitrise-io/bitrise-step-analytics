@@ -24,18 +24,18 @@ func CustomLogsPostHandler(w http.ResponseWriter, r *http.Request) error {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide message")
 	}
 	if _, ok := log.Data["step_id"].(string); !ok {
-		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide data.step_id")
+		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide data.step_id as string")
 	}
 	if _, ok := log.Data["tag"].(string); !ok {
-		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide data.tag")
+		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide data.tag as string")
 	}
 
-	dogstatsd, err := GetClientFromContext(r.Context())
+	segmentClient, err := GetClientFromContext(r.Context())
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	dogstatsd.Track(log)
+	segmentClient.Track(log)
 
 	return httpresponse.RespondWithSuccess(w, map[string]string{"message": "ok"})
 }
