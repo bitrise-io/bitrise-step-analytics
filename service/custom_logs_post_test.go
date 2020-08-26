@@ -48,13 +48,13 @@ func Test_CustomLogsPostHandler(t *testing.T) {
 			testName:           "error, when message also set",
 			requestBody:        `{"log_level":"warn","message":"test"}`,
 			expectedStatusCode: http.StatusBadRequest,
-			expectedBody:       `{"message":"Invalid request body, please provide data.step_id"}` + "\n",
+			expectedBody:       `{"message":"Invalid request body, please provide data.step_id as string"}` + "\n",
 		},
 		{
 			testName:           "error, when step id also set",
 			requestBody:        `{"log_level":"warn","message":"test","data":{"step_id":"test-step-id"}}`,
 			expectedStatusCode: http.StatusBadRequest,
-			expectedBody:       `{"message":"Invalid request body, please provide data.tag"}` + "\n",
+			expectedBody:       `{"message":"Invalid request body, please provide data.tag as string"}` + "\n",
 		},
 	} {
 		t.Run(tc.testName, func(t *testing.T) {
