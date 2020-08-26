@@ -8,9 +8,6 @@ import (
 
 	"github.com/bitrise-io/bitrise-step-analytics/service"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 )
 
 func Test_CustomLogsPostHandler(t *testing.T) {
@@ -26,40 +23,48 @@ func Test_CustomLogsPostHandler(t *testing.T) {
 	}{
 		{
 			testName:           "ok, minimal",
-			requestBody:        `{}`,
+			requestBody:        `{"log_level":"warn","message":"test","data":{"step_id":"test-step-id","tag":"test-tag"}}`,
 			expectedStatusCode: http.StatusOK,
 			expectedBody:       `{"message":"ok"}` + "\n",
 		},
 		{
-			testName:           "ok, more complex",
-			expectedLogContent: map[string]interface{}{"key1": "value1"},
-			requestBody:        `{"log_level":"info","message":"test message","data":{"key1":"value1"}}`,
-			expectedStatusCode: http.StatusOK,
-			expectedBody:       `{"message":"ok"}` + "\n",
-		},
-		{
-			testName:           "when request body isn't a valid JSON, it retrieves bad reqest error",
+			testName:           "error, when request body isn't a valid JSON, it retrieves bad reqest error",
 			expectedStatusCode: http.StatusBadRequest,
 			expectedBody:       `{"message":"Invalid request body, JSON decode failed"}` + "\n",
 		},
+		{
+			testName:           "error, when all required param missing",
+			requestBody:        `{}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide log_level"}` + "\n",
+		},
+		{
+			testName:           "error, missing message",
+			requestBody:        `{"log_level":"warn"}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide message"}` + "\n",
+		},
+		{
+			testName:           "error, when message also set",
+			requestBody:        `{"log_level":"warn","message":"test"}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide data.step_id as string"}` + "\n",
+		},
+		{
+			testName:           "error, when step id also set",
+			requestBody:        `{"log_level":"warn","message":"test","data":{"step_id":"test-step-id"}}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide data.tag as string"}` + "\n",
+		},
 	} {
 		t.Run(tc.testName, func(t *testing.T) {
-			core, recorded := observer.New(zapcore.InfoLevel)
-			zl := zap.New(core)
-
 			r, err := http.NewRequest("POST", "/logs", bytes.NewBuffer([]byte(tc.requestBody)))
 			require.NoError(t, err)
 
-			r = r.WithContext(service.ContextWithLoggerProvider(r.Context(), service.NewLoggerProvider(zl)))
+			r = r.WithContext(service.ContextWithClient(r.Context(), &testClient{}))
 
 			rr := httptest.NewRecorder()
 			internalServerError := handler(rr, r)
-
-			for _, logs := range recorded.All() {
-				for _, field := range logs.Context {
-					require.Equal(t, tc.expectedLogContent, field.Interface)
-				}
-			}
 
 			if tc.expectedBody != "" {
 				require.Equal(t, tc.expectedBody, rr.Body.String())
@@ -77,4 +82,18 @@ func Test_CustomLogsPostHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_CustomLogsPostHandlerInvalidContext(t *testing.T) {
+	handler := service.CustomLogsPostHandler
+
+	r, err := http.NewRequest("POST", "/logs", bytes.NewBuffer([]byte(`{"log_level":"warn","message":"test","data":{"step_id":"test-step-id","tag":"test-tag"}}`)))
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	internalServerError := handler(rr, r)
+	expectedInternalErr := "DogStatsD not found in Context"
+
+	require.EqualError(t, internalServerError, expectedInternalErr,
+		"Expected internal err: %s", expectedInternalErr)
 }

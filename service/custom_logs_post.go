@@ -2,53 +2,40 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/bitrise-io/api-utils/httpresponse"
-	"go.uber.org/zap"
+	"github.com/bitrise-io/bitrise-step-analytics/models"
+	"github.com/pkg/errors"
 )
-
-const (
-	logLvlInfo  string = "info"
-	logLvlWarn  string = "warn"
-	logLvlError string = "error"
-)
-
-// LogPostRequestBody ...
-type LogPostRequestBody struct {
-	LogLevel string                 `json:"log_level"`
-	Message  string                 `json:"message"`
-	Data     map[string]interface{} `json:"data"`
-}
 
 // CustomLogsPostHandler ...
 func CustomLogsPostHandler(w http.ResponseWriter, r *http.Request) error {
-	logData := LogPostRequestBody{}
+	var log models.RemoteLog
 	defer httpresponse.RequestBodyCloseWithErrorLog(r)
-	if err := json.NewDecoder(r.Body).Decode(&logData); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&log); err != nil {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, JSON decode failed")
 	}
 
-	logger, err := zap.NewProduction()
-	if err != nil {
-		fmt.Printf("Failed to initialize logger: %s", err)
+	if len(log.LogLevel) == 0 {
+		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide log_level")
 	}
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			fmt.Printf("Failed to sync logger: %s", err)
-		}
-	}()
+	if len(log.Message) == 0 {
+		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide message")
+	}
+	if _, ok := log.Data["step_id"].(string); !ok {
+		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide data.step_id as string")
+	}
+	if _, ok := log.Data["tag"].(string); !ok {
+		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide data.tag as string")
+	}
 
-	switch logData.LogLevel {
-	case logLvlInfo:
-		logger.Info(logData.Message, zap.Any("raw_json_data", logData.Data))
-	case logLvlWarn:
-		logger.Warn(logData.Message, zap.Any("raw_json_data", logData.Data))
-	case logLvlError:
-		logger.Error(logData.Message, zap.Any("raw_json_data", logData.Data))
+	segmentClient, err := GetClientFromContext(r.Context())
+	if err != nil {
+		return errors.WithStack(err)
 	}
+
+	segmentClient.Track(log)
 
 	return httpresponse.RespondWithSuccess(w, map[string]string{"message": "ok"})
 }
