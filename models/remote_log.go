@@ -2,9 +2,9 @@ package models
 
 // RemoteLog ...
 type RemoteLog struct {
-	LogLevel string                 `json:"log_level"`
-	Message  string                 `json:"message"`
-	Data     map[string]interface{} `json:"data"`
+	LogLevel string                 `json:"log_level" track:"log_level"`
+	Message  string                 `json:"message" track:"message"`
+	Data     map[string]interface{} `json:"data" track:"data"`
 }
 
 // Event ...
