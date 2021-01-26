@@ -21,6 +21,8 @@ func New(config configs.ConfigModel) *mux.Router {
 		httpresponse.InternalErrHandlerFuncAdapter(service.MetricsPostHandler))).Methods("POST")
 	r.Handle("/logs", middlewareProvider.MiddlewareWithClient().Then(
 		httpresponse.InternalErrHandlerFuncAdapter(service.CustomLogsPostHandler))).Methods("POST")
+	r.Handle("/tools", middlewareProvider.MiddlewareWithClient().Then(
+		httpresponse.InternalErrHandlerFuncAdapter(service.ToolsPostHandler))).Methods("POST")
 
 	return r
 }
