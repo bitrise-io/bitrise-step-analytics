@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/bitrise-io/api-utils/httprequest"
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-io/bitrise-step-analytics/models"
 	"github.com/pkg/errors"
@@ -13,7 +14,7 @@ import (
 // MetricsPostHandler ...
 func MetricsPostHandler(w http.ResponseWriter, r *http.Request) error {
 	var buildAnalytics models.BuildAnalytics
-	defer httpresponse.RequestBodyCloseWithErrorLog(r)
+	defer httprequest.BodyCloseWithErrorLog(r)
 	if err := json.NewDecoder(r.Body).Decode(&buildAnalytics); err != nil {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, JSON decode failed")
 	}

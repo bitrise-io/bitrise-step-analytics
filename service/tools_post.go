@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"github.com/bitrise-io/api-utils/httprequest"
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-io/bitrise-step-analytics/models"
 	"github.com/pkg/errors"
@@ -11,7 +12,7 @@ import (
 // ToolsPostHandler ...
 func ToolsPostHandler(w http.ResponseWriter, r *http.Request) error {
 	var toolAnalytics models.ToolAnalytics
-	defer httpresponse.RequestBodyCloseWithErrorLog(r)
+	defer httprequest.BodyCloseWithErrorLog(r)
 	if err := json.NewDecoder(r.Body).Decode(&toolAnalytics); err != nil {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, JSON decode failed")
 	}
