@@ -2,3 +2,4 @@
 .gows.user.yml
 gin-bin
 /log/*.log
+.idea/
