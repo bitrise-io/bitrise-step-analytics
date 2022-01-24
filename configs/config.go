@@ -7,7 +7,7 @@ import (
 
 // ConfigModel ...
 type ConfigModel struct {
-	Port, EnvMode, SegmentWriteKey string
+	Port, EnvMode, SegmentWriteKey, TrackerWriteKey string
 }
 
 // Validate ...
@@ -29,6 +29,7 @@ func createFromEnvs() (ConfigModel, error) {
 		Port:            os.Getenv("PORT"),
 		EnvMode:         os.Getenv("GO_ENV"),
 		SegmentWriteKey: os.Getenv("SEGMENT_WRITE_KEY"),
+		TrackerWriteKey: os.Getenv("TRACKER_WRITE_KEY"),
 	}
 	return c, nil
 }

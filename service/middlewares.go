@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/bitrise-io/bitrise-step-analytics/event"
 	"net/http"
 
 	"github.com/bitrise-io/bitrise-step-analytics/metrics"
@@ -10,7 +11,15 @@ import (
 
 // MiddlewareProvider ...
 type MiddlewareProvider struct {
-	Client metrics.Interface
+	Client  metrics.Interface
+	Tracker event.Tracker
+}
+
+// MiddlewareWithClient ...
+func (m MiddlewareProvider) MiddlewareWithClient() alice.Chain {
+	return m.CommonMiddleware().Append(
+		createSetClientMiddleware(m.Client),
+	)
 }
 
 func createSetClientMiddleware(Client metrics.Interface) func(http.Handler) http.Handler {
@@ -22,16 +31,24 @@ func createSetClientMiddleware(Client metrics.Interface) func(http.Handler) http
 	}
 }
 
+func (m MiddlewareProvider) MiddlewareWithTracker() alice.Chain {
+	return m.CommonMiddleware().Append(
+		createSetTrackerMiddleware(m.Tracker),
+	)
+}
+
+func createSetTrackerMiddleware(tracker event.Tracker) func(http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := ContextWithTracker(r.Context(), tracker)
+			h.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
 // CommonMiddleware ...
 func (m MiddlewareProvider) CommonMiddleware() alice.Chain {
 	return alice.New(
 		cors.AllowAll().Handler,
-	)
-}
-
-// MiddlewareWithClient ...
-func (m MiddlewareProvider) MiddlewareWithClient() alice.Chain {
-	return m.CommonMiddleware().Append(
-		createSetClientMiddleware(m.Client),
 	)
 }

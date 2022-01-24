@@ -32,6 +32,7 @@ require (
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/segmentio/backo-go v1.0.0 // indirect
+	github.com/stretchr/objx v0.1.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.uber.org/atomic v1.9.0 // indirect
