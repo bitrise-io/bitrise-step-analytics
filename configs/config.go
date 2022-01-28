@@ -21,6 +21,9 @@ func (c ConfigModel) Validate() error {
 	if len(c.SegmentWriteKey) < 1 {
 		return errors.New("Segment write key must be specified")
 	}
+	if len(c.TrackerWriteKey) < 1 {
+		return errors.New("Tracker write key must be specified")
+	}
 	return nil
 }
 
