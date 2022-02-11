@@ -15,7 +15,7 @@ func New(config configs.ConfigModel) *mux.Router {
 
 	middlewareProvider := service.MiddlewareProvider{
 		Client:  metrics.NewClient(config.SegmentWriteKey),
-		Tracker: event.NewTracker(config.TrackerWriteKey),
+		Tracker: event.NewTracker(config.TrackerProject, config.TrackerTopic),
 	}
 
 	r.Handle("/", middlewareProvider.CommonMiddleware().ThenFunc(service.RootHandler))

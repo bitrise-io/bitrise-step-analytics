@@ -7,7 +7,7 @@ import (
 
 // ConfigModel ...
 type ConfigModel struct {
-	Port, EnvMode, SegmentWriteKey, TrackerWriteKey string
+	Port, EnvMode, SegmentWriteKey, TrackerTopic, TrackerProject string
 }
 
 // Validate ...
@@ -21,8 +21,11 @@ func (c ConfigModel) Validate() error {
 	if len(c.SegmentWriteKey) < 1 {
 		return errors.New("Segment write key must be specified")
 	}
-	if len(c.TrackerWriteKey) < 1 {
-		return errors.New("Tracker write key must be specified")
+	if len(c.TrackerProject) < 1 {
+		return errors.New("Tracker's project must be specified")
+	}
+	if len(c.TrackerTopic) < 1 {
+		return errors.New("Tracker's topic must be specified")
 	}
 	return nil
 }
@@ -32,7 +35,8 @@ func createFromEnvs() (ConfigModel, error) {
 		Port:            os.Getenv("PORT"),
 		EnvMode:         os.Getenv("GO_ENV"),
 		SegmentWriteKey: os.Getenv("SEGMENT_WRITE_KEY"),
-		TrackerWriteKey: os.Getenv("TRACKER_WRITE_KEY"),
+		TrackerProject:  os.Getenv("TRACKER_PROJECT"),
+		TrackerTopic:    os.Getenv("TRACKER_TOPIC"),
 	}
 	return c, nil
 }
