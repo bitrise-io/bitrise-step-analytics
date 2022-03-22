@@ -5,6 +5,7 @@ go 1.17
 require (
 	cloud.google.com/go/pubsub v1.3.1
 	github.com/bitrise-io/api-utils v0.0.0-20211025122143-6499571b8433
+	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/justinas/alice v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.8.2

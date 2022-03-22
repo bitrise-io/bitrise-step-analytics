@@ -9,13 +9,11 @@ import (
 	segment "gopkg.in/segmentio/analytics-go.v3"
 )
 
-// Interface ...
 type Interface interface {
 	Track(t Trackable)
 	Close()
 }
 
-// Client ...
 type Client struct {
 	client segment.Client
 }
@@ -29,14 +27,12 @@ type Trackable interface {
 	UserID() string
 }
 
-// NewClient ...
 func NewClient(segmentWriteKey string) *Client {
 	return &Client{
 		client: segment.New(segmentWriteKey),
 	}
 }
 
-// Track ...
 func (b *Client) Track(t Trackable) {
 	logger, err := zap.NewProduction()
 	if err != nil {
@@ -61,7 +57,6 @@ func (b *Client) Track(t Trackable) {
 	}
 }
 
-// Close ...
 func (b *Client) Close() {
 	logger, err := zap.NewProduction()
 	if err != nil {

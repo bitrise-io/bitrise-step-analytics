@@ -9,13 +9,11 @@ import (
 	"github.com/rs/cors"
 )
 
-// MiddlewareProvider ...
 type MiddlewareProvider struct {
 	Client  metrics.Interface
 	Tracker event.Tracker
 }
 
-// MiddlewareWithClient ...
 func (m MiddlewareProvider) MiddlewareWithClient() alice.Chain {
 	return m.CommonMiddleware().Append(
 		createSetClientMiddleware(m.Client),
@@ -31,7 +29,6 @@ func createSetClientMiddleware(Client metrics.Interface) func(http.Handler) http
 	}
 }
 
-// MiddlewareWithTracker ...
 func (m MiddlewareProvider) MiddlewareWithTracker() alice.Chain {
 	return m.CommonMiddleware().Append(
 		createSetTrackerMiddleware(m.Tracker),
@@ -47,7 +44,6 @@ func createSetTrackerMiddleware(tracker event.Tracker) func(http.Handler) http.H
 	}
 }
 
-// CommonMiddleware ...
 func (m MiddlewareProvider) CommonMiddleware() alice.Chain {
 	return alice.New(
 		cors.AllowAll().Handler,

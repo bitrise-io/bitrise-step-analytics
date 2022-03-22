@@ -5,12 +5,10 @@ import (
 	"os"
 )
 
-// ConfigModel ...
 type ConfigModel struct {
 	Port, EnvMode, SegmentWriteKey, TrackerTopic, TrackerProject string
 }
 
-// Validate ...
 func (c ConfigModel) Validate() error {
 	if len(c.Port) < 1 {
 		return errors.New("Port must be specified")

@@ -36,7 +36,13 @@ workflows:
             fi
   test:
     steps:
-    - go-list:
-    - golint:
-    - errcheck:
-    - go-test:
+    - script@1:
+        title: Run golangci-lint
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -xeo pipefail
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.44.2
+            golangci-lint run --timeout 5m
+    - go-list: { }
+    - go-test: { }

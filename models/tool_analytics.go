@@ -1,6 +1,5 @@
 package models
 
-// ToolAnalytics ...
 type ToolAnalytics struct {
 	BuildSlug string `json:"build_slug"`
 

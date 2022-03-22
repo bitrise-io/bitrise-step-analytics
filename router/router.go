@@ -9,7 +9,6 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 )
 
-// New ...
 func New(config configs.ConfigModel) *mux.Router {
 	r := mux.NewRouter(mux.WithServiceName("step-analytics-mux")).StrictSlash(true)
 

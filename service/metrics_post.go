@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MetricsPostHandler ...
 func MetricsPostHandler(w http.ResponseWriter, r *http.Request) error {
 	var buildAnalytics models.BuildAnalytics
 	defer httprequest.BodyCloseWithErrorLog(r)

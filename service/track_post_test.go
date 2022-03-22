@@ -2,11 +2,12 @@ package service_test
 
 import (
 	"bytes"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/bitrise-io/bitrise-step-analytics/event/mocks"
 	"github.com/bitrise-io/bitrise-step-analytics/service"
@@ -29,6 +30,7 @@ func Test_TrackPostHandler(t *testing.T) {
 		{
 			testName: "ok, minimal",
 			requestBody: `{
+"id": "4d94adc2-33a7-4ad9-9f69-5c937a6da52a",
 "event_name": "test_event"
 }`,
 			expectedStatusCode: http.StatusOK,
@@ -37,7 +39,16 @@ func Test_TrackPostHandler(t *testing.T) {
 		{
 			testName: "when no event provided",
 			requestBody: `{
+"id": "4d94adc2-33a7-4ad9-9f69-5c937a6da52a",
 "test_property": "test_value"
+}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedBody:       `{"message":"Invalid request body, please provide event's name"}` + "\n",
+		},
+		{
+			testName: "when invalid id provided",
+			requestBody: `{
+"id": "fake-id"
 }`,
 			expectedStatusCode: http.StatusBadRequest,
 			expectedBody:       `{"message":"Invalid request body, please provide event's name"}` + "\n",
@@ -56,6 +67,7 @@ func Test_TrackPostHandler(t *testing.T) {
 		{
 			testName: "when tracking has failed",
 			requestBody: `{
+"id": "4d94adc2-33a7-4ad9-9f69-5c937a6da52a",
 "event_name": "test_event"
 }`,
 			expectedStatusCode: http.StatusInternalServerError,

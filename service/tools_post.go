@@ -2,14 +2,14 @@ package service
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/bitrise-io/api-utils/httprequest"
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-io/bitrise-step-analytics/models"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
-// ToolsPostHandler ...
 func ToolsPostHandler(w http.ResponseWriter, r *http.Request) error {
 	var toolAnalytics models.ToolAnalytics
 	defer httprequest.BodyCloseWithErrorLog(r)

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+
 	"github.com/bitrise-io/bitrise-step-analytics/event"
 
 	"github.com/bitrise-io/bitrise-step-analytics/metrics"
@@ -11,13 +12,10 @@ import (
 type tRequestContextKey string
 
 const (
-	// ContextKeyClient ...
-	ContextKeyClient tRequestContextKey = "rck-dogstatsd-metrics"
-	// ContextKeyTracker ...
+	ContextKeyClient  tRequestContextKey = "rck-dogstatsd-metrics"
 	ContextKeyTracker tRequestContextKey = "rck-event-tracker"
 )
 
-// GetClientFromContext ...
 func GetClientFromContext(ctx context.Context) (metrics.Interface, error) {
 	dsdi, ok := ctx.Value(ContextKeyClient).(metrics.Interface)
 	if !ok {
@@ -26,7 +24,6 @@ func GetClientFromContext(ctx context.Context) (metrics.Interface, error) {
 	return dsdi, nil
 }
 
-// GetTrackerFromContext ...
 func GetTrackerFromContext(ctx context.Context) (event.Tracker, error) {
 	tracker, ok := ctx.Value(ContextKeyTracker).(event.Tracker)
 	if !ok {
@@ -35,12 +32,10 @@ func GetTrackerFromContext(ctx context.Context) (event.Tracker, error) {
 	return tracker, nil
 }
 
-// ContextWithClient ...
 func ContextWithClient(ctx context.Context, dsdi metrics.Interface) context.Context {
 	return context.WithValue(ctx, ContextKeyClient, dsdi)
 }
 
-// ContextWithTracker ...
 func ContextWithTracker(ctx context.Context, tracker event.Tracker) context.Context {
 	return context.WithValue(ctx, ContextKeyTracker, tracker)
 }

@@ -3,14 +3,15 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/bitrise-io/api-utils/httprequest"
 	"github.com/bitrise-io/api-utils/httpresponse"
 	"github.com/bitrise-io/bitrise-step-analytics/models"
+	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
-// TrackPostHandler ...
 func TrackPostHandler(w http.ResponseWriter, r *http.Request) error {
 	var trackAnalytics models.TrackEvent
 	defer httprequest.BodyCloseWithErrorLog(r)
@@ -20,6 +21,10 @@ func TrackPostHandler(w http.ResponseWriter, r *http.Request) error {
 
 	if trackAnalytics.EventName == "" {
 		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, please provide event's name")
+	}
+
+	if _, err := uuid.FromString(trackAnalytics.ID); err != nil {
+		return httpresponse.RespondWithBadRequestError(w, fmt.Sprintf("Invalid request body, provided id is not valid uuid: %s", trackAnalytics.ID))
 	}
 
 	tracker, err := GetTrackerFromContext(r.Context())
