@@ -20,6 +20,7 @@ type tracker struct {
 	context *context.Context
 }
 
+// NewTracker ...
 func NewTracker(projectID string, topic string) Tracker {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
@@ -29,6 +30,7 @@ func NewTracker(projectID string, topic string) Tracker {
 	return tracker{topic: client.Topic(topic), context: &ctx}
 }
 
+// Send ...
 func (t tracker) Send(analytics models.TrackEvent) error {
 	properties := map[string]interface{}{"id": analytics.ID, "ts": convertEpochInMicrosecondsToBigQueryTimestampFormat(analytics.Timestamp), "event_name": analytics.EventName}
 	for k, v := range analytics.Properties {

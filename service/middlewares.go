@@ -1,9 +1,9 @@
 package service
 
 import (
-	"github.com/bitrise-io/bitrise-step-analytics/event"
 	"net/http"
 
+	"github.com/bitrise-io/bitrise-step-analytics/event"
 	"github.com/bitrise-io/bitrise-step-analytics/metrics"
 	"github.com/justinas/alice"
 	"github.com/rs/cors"
@@ -31,6 +31,7 @@ func createSetClientMiddleware(Client metrics.Interface) func(http.Handler) http
 	}
 }
 
+// MiddlewareWithTracker ...
 func (m MiddlewareProvider) MiddlewareWithTracker() alice.Chain {
 	return m.CommonMiddleware().Append(
 		createSetTrackerMiddleware(m.Tracker),
