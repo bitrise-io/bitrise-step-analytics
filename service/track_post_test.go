@@ -56,13 +56,13 @@ func Test_TrackPostHandler(t *testing.T) {
 		{
 			testName:           "when no request body provided",
 			expectedStatusCode: http.StatusBadRequest,
-			expectedBody:       `{"message":"Invalid request body, JSON decode failed"}` + "\n",
+			expectedBody:       `{"message":"Invalid request body, JSON decode failed: EOF"}` + "\n",
 		},
 		{
 			testName:           "when invalid request body provided",
 			requestBody:        "invalidJSON",
 			expectedStatusCode: http.StatusBadRequest,
-			expectedBody:       `{"message":"Invalid request body, JSON decode failed"}` + "\n",
+			expectedBody:       `{"message":"Invalid request body, JSON decode failed: invalid character 'i' looking for beginning of value"}` + "\n",
 		},
 		{
 			testName: "when tracking has failed",

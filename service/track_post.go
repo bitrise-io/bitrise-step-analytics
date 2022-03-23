@@ -16,7 +16,7 @@ func TrackPostHandler(w http.ResponseWriter, r *http.Request) error {
 	var trackAnalytics models.TrackEvent
 	defer httprequest.BodyCloseWithErrorLog(r)
 	if err := json.NewDecoder(r.Body).Decode(&trackAnalytics); err != nil {
-		return httpresponse.RespondWithBadRequestError(w, "Invalid request body, JSON decode failed")
+		return httpresponse.RespondWithBadRequestError(w, fmt.Sprintf("Invalid request body, JSON decode failed: %s", err.Error()))
 	}
 
 	if trackAnalytics.EventName == "" {
@@ -24,7 +24,7 @@ func TrackPostHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if _, err := uuid.FromString(trackAnalytics.ID); err != nil {
-		return httpresponse.RespondWithBadRequestError(w, fmt.Sprintf("Invalid request body, provided id is not valid uuid: %s", trackAnalytics.ID))
+		return httpresponse.RespondWithBadRequestError(w, fmt.Sprintf("Invalid request body, provided id (%s) is not valid uuid: %s", trackAnalytics.ID, err.Error()))
 	}
 
 	tracker, err := GetTrackerFromContext(r.Context())

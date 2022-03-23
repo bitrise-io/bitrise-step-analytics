@@ -9,12 +9,12 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 )
 
-func New(config configs.ConfigModel) *mux.Router {
+func New(config configs.Config) *mux.Router {
 	r := mux.NewRouter(mux.WithServiceName("step-analytics-mux")).StrictSlash(true)
 
 	middlewareProvider := service.MiddlewareProvider{
 		Client:  metrics.NewClient(config.SegmentWriteKey),
-		Tracker: event.NewTracker(config.TrackerProject, config.TrackerTopic),
+		Tracker: event.NewTracker(config.PubSubProject, config.PubSubTopic, config.PubSubCredentials),
 	}
 
 	r.Handle("/", middlewareProvider.CommonMiddleware().ThenFunc(service.RootHandler))

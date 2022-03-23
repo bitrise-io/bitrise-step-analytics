@@ -1,50 +1,23 @@
 package configs
 
 import (
-	"errors"
-	"os"
+	"github.com/bitrise-io/go-steputils/v2/stepconf"
 )
 
-type ConfigModel struct {
-	Port, EnvMode, SegmentWriteKey, TrackerTopic, TrackerProject string
+type Config struct {
+	Port              string `env:"PORT,required"`
+	EnvMode           string `env:"GO_ENV,required"`
+	SegmentWriteKey   string `env:"SEGMENT_WRITE_KEY,required"`
+	PubSubCredentials string `env:"PUBSUB_CREDENTIALS,required"`
+	PubSubProject     string `env:"PUBSUB_PROJECT,required"`
+	PubSubTopic       string `env:"PUBSUB_TOPIC,required"`
 }
 
-func (c ConfigModel) Validate() error {
-	if len(c.Port) < 1 {
-		return errors.New("Port must be specified")
+// Parse - reads the config from envs etc.
+func Parse(parser stepconf.InputParser) (Config, error) {
+	var cfg Config
+	if err := parser.Parse(&cfg); err != nil {
+		return Config{}, err
 	}
-	if len(c.EnvMode) < 1 {
-		return errors.New("Env mode must be specified")
-	}
-	if len(c.SegmentWriteKey) < 1 {
-		return errors.New("Segment write key must be specified")
-	}
-	if len(c.TrackerProject) < 1 {
-		return errors.New("Tracker's project must be specified")
-	}
-	if len(c.TrackerTopic) < 1 {
-		return errors.New("Tracker's topic must be specified")
-	}
-	return nil
-}
-
-func createFromEnvs() (ConfigModel, error) {
-	c := ConfigModel{
-		Port:            os.Getenv("PORT"),
-		EnvMode:         os.Getenv("GO_ENV"),
-		SegmentWriteKey: os.Getenv("SEGMENT_WRITE_KEY"),
-		TrackerProject:  os.Getenv("TRACKER_PROJECT"),
-		TrackerTopic:    os.Getenv("TRACKER_TOPIC"),
-	}
-	return c, nil
-}
-
-// CreateAndValidate - reads the config from envs etc.
-func CreateAndValidate() (ConfigModel, error) {
-	conf, err := createFromEnvs()
-	if err != nil {
-		return conf, err
-	}
-
-	return conf, conf.Validate()
+	return cfg, nil
 }
