@@ -8,11 +8,8 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/bitrise-io/bitrise-step-analytics/models"
-	"github.com/bitrise-io/go-utils/retry"
 	"google.golang.org/api/option"
 )
-
-const timeOut = 30 * time.Second
 
 type Tracker interface {
 	Send(analytics models.TrackEvent) error
@@ -25,9 +22,7 @@ type tracker struct {
 
 func NewTracker(projectID string, topic string, credentialJSON string) Tracker {
 	ctx := context.Background()
-	httpClient := retry.NewHTTPClient().StandardClient()
-	httpClient.Timeout = timeOut
-	client, err := pubsub.NewClient(ctx, projectID, option.WithCredentialsJSON([]byte(credentialJSON)), option.WithHTTPClient(httpClient))
+	client, err := pubsub.NewClient(ctx, projectID, option.WithCredentialsJSON([]byte(credentialJSON)))
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't start PubSub Client: %s", err.Error()))
 	}
