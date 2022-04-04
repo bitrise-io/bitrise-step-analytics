@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// CustomLogsPostHandler ...
 func CustomLogsPostHandler(w http.ResponseWriter, r *http.Request) error {
 	var log models.RemoteLog
 	defer httprequest.BodyCloseWithErrorLog(r)
