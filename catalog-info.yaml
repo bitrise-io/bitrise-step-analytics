@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: "step-analytics"
+  description: "step-analytics"
+  annotations:
+    gcp.bitrise.io/dev-project-id: ip-bitrise-steps-dev
+    gcp.bitrise.io/dev-service-account: step-analytics@ip-bitrise-steps-dev.iam.gserviceaccount.com
+    gcp.bitrise.io/prod-project-id: ip-bitrise-steps-prod
+    gcp.bitrise.io/prod-service-account: step-analytics@ip-bitrise-steps-prod.iam.gserviceaccount.com
+spec:
+  type: service
+  lifecycle: experimental
+  owner: "mobile-experts"
+  system: "bitrise-steps"
+  dependsOn:
+    []
+    
+
