@@ -1,48 +1,184 @@
-format_version: "4"
+---
+format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-project_type: ""
+project_type: other
+
+# If you want to use this bitrise.yml from the repository then make the switchover using this guide:
+# https://devcenter.bitrise.io/en/builds/configuring-build-settings/managing-an-app-s-bitrise-yml-file.html#storing-the-bitrise-yml-file-in-your-repository
+
+meta:
+  bitrise.io:
+    stack: linux-docker-android-20.04
+
 app:
   envs:
-  - GO_PROJECT_PATH: github.com/bitrise-io/bitrise-step-analytics
-  - RELEASE_START_BRANCH: master
-  - RELEASE_DESTINATION_BRANCH: prod
-  - PORT: 3012
-  - HEROKU_APP_NAME: bitrise-step-analytics
-workflows:
-  deploy-to-heroku:
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
+      # Github username to use to commit to the gitops deployment repository.
+    - GITHUB_USERNAME: $GITHUB_USERNAME
+      # Personal access token for Github to commit to the gitops deployment repository.
+    - DEPLOY_TOKEN: $DEPLOY_TOKEN
+    - GCR_PROJECT_PRODUCTION: ip-kubernetes-prod
+      # Base64 encoded credentials for pushing images to the production container registry.
+    - GCR_SERVICE_ACCOUNT_PRODUCTION_B64: $GCR_SERVICE_ACCOUNT_PRODUCTION_B64
+    - GCR_PROJECT_STAGING: ip-kubernetes-dev
+      # Base64 encoded credentials for pushing images to the staging container registry.
+    - GCR_SERVICE_ACCOUNT_STAGING_B64: $GCR_SERVICE_ACCOUNT_STAGING_B64
 
-            heroku container:login
-            heroku container:push web -R -a $HEROKU_APP_NAME
-            heroku container:release web -a $HEROKU_APP_NAME
-  start:
+trigger_map:
+  - push_branch: 'master'
+    workflow: deploy-staging
+  - pull_request_target_branch: 'master'
+    workflow: ci
+
+workflows:
+  ci:
+    before_run:
+      - _clone
     steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            if [ "$IS_USE_GIN" == "yes" ] ; then
-              go get github.com/codegangsta/gin
-              docker-compose up
-            else
-              go install
-              bitrise-step-analytics
-            fi
-  test:
+      - script:
+          title: Run tests
+          inputs:
+            - content: |-
+                #!/bin/bash
+                set -euxo pipefail
+                go test ./...
+
+  deploy-staging:
+    before_run:
+      - ci
+    after_run:
+      - _set_release_tag
+      - _build_images
+      - _set_git_creds
+      - _push_staging
+      - _deploy_staging
+
+#  deploy-all: TODO Uncomment this when the production config is ready!
+#    before_run:
+#      - ci
+#    after_run:
+#      - _set_release_tag
+#      - _build_images
+#      - _set_git_creds
+#      - _push_staging
+#      - _deploy_staging
+#      - _push_production
+#      - _deploy_production
+
+  _clone:
     steps:
-    - script@1:
-        title: Run golangci-lint
-        inputs:
-        - content: |-
-            #!/bin/env bash
-            set -xeo pipefail
-            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.44.2
-            golangci-lint run --timeout 5m
-    - go-list: { }
-    - go-test: { }
+      - activate-ssh-key: {}
+      - git-clone: {}
+
+  _set_git_creds:
+    steps:
+      - set-git-credentials:
+          inputs:
+            - git_email_address: mobile-experts@bitrise.io
+            - git_user_name: mobile-experts
+
+  _set_release_tag:
+    steps:
+      - script:
+          title: get-release-tag
+          inputs:
+            - content: |-
+                #!/bin/bash
+                set -euxo pipefail
+                
+                if [ -n "${BITRISE_GIT_TAG-}" ]; then
+                  RELEASE_TAG=$BITRISE_GIT_TAG
+                elif [ -n "${BITRISE_GIT_COMMIT-}" ]; then
+                  RELEASE_TAG=$BITRISE_GIT_COMMIT
+                else
+                  RELEASE_TAG=$BITRISE_BUILD_NUMBER # If this is a manual build with no git info
+                fi
+                envman add --key RELEASE_TAG --value ${RELEASE_TAG}
+                
+                if [ -z "${BITRISE_GIT_MESSAGE-}" ]; then
+                  envman add --key BITRISE_GIT_MESSAGE --value "Deploying image $RELEASE_TAG"
+                fi
+
+  _build_images:
+    steps:
+      - script:
+          title: Build Docker Image
+          inputs:
+            - content: |-
+                #!/bin/bash
+                set -euxo pipefail
+                docker build --tag us.gcr.io/${GCR_PROJECT_STAGING}/step-analytics:${RELEASE_TAG} --tag us.gcr.io/${GCR_PROJECT_PRODUCTION}/step-analytics:${RELEASE_TAG} .
+
+  _push_to_gcr:
+    envs:
+      - GCR_SERVICE_ACCOUNT_B64: $GCR_SERVICE_ACCOUNT_B64
+      - GCR_PROJECT: $GCR_PROJECT
+    steps:
+      - script:
+          title: Authenticate to GCP
+          inputs:
+            - content: |-
+                #!/bin/bash
+                set -euxo pipefail
+                KEY_FILE_PATH=$(mktemp -d)/keyfile.json
+                echo "${GCR_SERVICE_ACCOUNT_B64}" | base64 --decode > ${KEY_FILE_PATH}
+                gcloud auth activate-service-account --key-file=${KEY_FILE_PATH}
+                gcloud auth configure-docker
+      - script:
+          title: Tag and push Docker image
+          inputs:
+            - content: |-
+                #!/bin/bash
+                set -euxo pipefail
+                docker push us.gcr.io/${GCR_PROJECT}/step-analytics:${RELEASE_TAG}
+
+  _push_staging:
+    envs:
+      - GCR_SERVICE_ACCOUNT_B64: $GCR_SERVICE_ACCOUNT_STAGING_B64
+      - GCR_PROJECT: $GCR_PROJECT_STAGING
+    after_run:
+      - _push_to_gcr
+
+  _push_production:
+    envs:
+      - GCR_SERVICE_ACCOUNT_B64: $GCR_SERVICE_ACCOUNT_PRODUCTION_B64
+      - GCR_PROJECT: $GCR_PROJECT_PRODUCTION
+    after_run:
+      - _push_to_gcr
+
+  _gitops_deploy:
+    envs:
+      - GCR_PROJECT: $GCR_PROJECT
+      - DEPLOY_BRANCH: $DEPLOY_BRANCH
+      - SHOULD_CREATE_PULL_REQUEST: $SHOULD_CREATE_PULL_REQUEST
+    steps:
+      - update-gitops-repository@1:
+          title: Update deployment configuration of step-analytics
+          inputs:
+            - templates_folder_path: deployments/helm
+            - deploy_repository_url: https://github.com/bitrise-io/bitrise-steps-deployments.git
+            - deploy_user: ${GITHUB_USERNAME}
+            - deploy_branch: $DEPLOY_BRANCH
+            - deploy_path: step-analytics
+            - pull_request: $SHOULD_CREATE_PULL_REQUEST
+            - pull_request_title: "step-analytics - ${BITRISE_GIT_MESSAGE}"
+            - pull_request_body: "${BITRISE_BUILD_URL}"
+            - commit_message: $BITRISE_GIT_MESSAGE
+            - values: |
+                repository: us.gcr.io/${GCR_PROJECT}/step-analytics
+                tag: ${RELEASE_TAG}
+
+  _deploy_staging:
+    envs:
+      - GCR_PROJECT: $GCR_PROJECT_STAGING
+      - DEPLOY_BRANCH: staging
+      - SHOULD_CREATE_PULL_REQUEST: false
+    after_run:
+      - _gitops_deploy
+
+  _deploy_production:
+    envs:
+      - GCR_PROJECT: $GCR_PROJECT_PRODUCTION
+      - DEPLOY_BRANCH: production
+      - SHOULD_CREATE_PULL_REQUEST: true
+    after_run:
+      - _gitops_deploy
