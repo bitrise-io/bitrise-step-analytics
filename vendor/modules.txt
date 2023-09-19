@@ -371,6 +371,6 @@ gopkg.in/DataDog/dd-trace-go.v1/internal/version
 # gopkg.in/segmentio/analytics-go.v3 v3.1.0
 ## explicit
 gopkg.in/segmentio/analytics-go.v3
-# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+# gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
