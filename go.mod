@@ -1,6 +1,6 @@
 module github.com/bitrise-io/bitrise-step-analytics
 
-go 1.17
+go 1.24
 
 require (
 	cloud.google.com/go/pubsub v1.19.0
