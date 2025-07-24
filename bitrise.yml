@@ -3,7 +3,6 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 project_type: ""
 app:
   envs:
-  - GO_PROJECT_PATH: github.com/bitrise-io/bitrise-step-analytics
   - RELEASE_START_BRANCH: master
   - RELEASE_DESTINATION_BRANCH: prod
   - PORT: 3012
@@ -35,6 +34,8 @@ workflows:
               bitrise-step-analytics
             fi
   test:
+    envs:
+    - GOROOT: "" # the Go step toolkit messes up the environment by overriding this
     steps:
     - script@1:
         title: Run golangci-lint
@@ -42,7 +43,10 @@ workflows:
         - content: |-
             #!/bin/env bash
             set -xeo pipefail
-            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.51.2
+            asdf install golang
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ~/.local/bin v1.51.2
             golangci-lint run --timeout 5m
-    - go-list: { }
-    - go-test: { }
+    - script@1:
+        title: Run tests
+        inputs:
+        - content: go test -v ./...
