@@ -92,7 +92,7 @@ func Test_CustomLogsPostHandlerInvalidContext(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	internalServerError := handler(rr, r)
-	expectedInternalErr := "DogStatsD not found in Context"
+	expectedInternalErr := "segment client not found in Context"
 
 	require.EqualError(t, internalServerError, expectedInternalErr,
 		"Expected internal err: %s", expectedInternalErr)

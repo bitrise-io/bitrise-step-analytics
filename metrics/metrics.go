@@ -50,7 +50,7 @@ func (b *Client) Track(t Trackable) {
 		UserId:     t.UserID(),
 		Properties: parseTrackableFields(t.Model()),
 	}); err != nil {
-		logger.Error("DogStatsD Diagnostic backend has failed to track",
+		logger.Error("Segment tracking error",
 			zap.String("profile_name", t.UserID()),
 			zap.Any("error_details", errors.WithStack(err)),
 		)
@@ -70,7 +70,7 @@ func (b *Client) Close() {
 	}()
 
 	if err := b.client.Close(); err != nil {
-		logger.Error("DogStatsD Diagnostic backend has failed to close its client",
+		logger.Error("Segment has failed to close its client",
 			zap.Any("error_details", errors.WithStack(err)),
 		)
 	}

@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/bitrise-io/bitrise-step-analytics/models"
+	"github.com/bitrise-io/bitrise-step-analytics/stepmetrics"
 	"google.golang.org/api/option"
 )
 
@@ -16,8 +18,9 @@ type Tracker interface {
 }
 
 type tracker struct {
-	topic   *pubsub.Topic
-	context *context.Context
+	topic         *pubsub.Topic
+	context       *context.Context
+	datadogClient *statsd.Client
 }
 
 func NewTracker(projectID string, topic string, credentialJSON string) Tracker {
@@ -26,12 +29,21 @@ func NewTracker(projectID string, topic string, credentialJSON string) Tracker {
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't start PubSub Client: %s", err.Error()))
 	}
-	return tracker{topic: client.Topic(topic), context: &ctx}
+
+	// Do not provide hostname, rely on the defaults set by DD_AGENT_HOST and DD_DOGSTATSD_PORT
+	datadogClient, err := statsd.New("", statsd.WithNamespace("step_metrics"))
+	if err != nil {
+		panic(fmt.Sprintf("Couldn't start Datadog Client: %s", err.Error()))
+	}
+
+	return tracker{topic: client.Topic(topic), context: &ctx, datadogClient: datadogClient}
 }
 
-func (t tracker) Send(analytics models.TrackEvent) error {
-	properties := map[string]interface{}{"id": analytics.ID, "ts": convertEpochInMicrosecondsToBigQueryTimestampFormat(analytics.Timestamp), "event_name": analytics.EventName}
-	for k, v := range analytics.Properties {
+func (t tracker) Send(event models.TrackEvent) error {
+	stepmetrics.CreateMetricsFromEvent(t.datadogClient, event)
+
+	properties := map[string]interface{}{"id": event.ID, "ts": convertEpochInMicrosecondsToBigQueryTimestampFormat(event.Timestamp), "event_name": event.EventName}
+	for k, v := range event.Properties {
 		if k == "id" || k == "ts" || k == "event_name" {
 			continue
 		}
