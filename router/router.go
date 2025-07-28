@@ -18,8 +18,6 @@ func New(config configs.Config) *mux.Router {
 	}
 
 	r.Handle("/", middlewareProvider.CommonMiddleware().ThenFunc(service.RootHandler))
-	r.Handle("/metrics", middlewareProvider.MiddlewareWithClient().Then(
-		httpresponse.InternalErrHandlerFuncAdapter(service.MetricsPostHandler))).Methods("POST")
 	r.Handle("/logs", middlewareProvider.MiddlewareWithClient().Then(
 		httpresponse.InternalErrHandlerFuncAdapter(service.CustomLogsPostHandler))).Methods("POST")
 	r.Handle("/tools", middlewareProvider.MiddlewareWithClient().Then(
