@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 type TrackEvent struct {
 	ID         string         `json:"id"`
 	EventName  string         `json:"event_name"`
@@ -19,4 +21,11 @@ func (e TrackEvent) IntProp(key string) int {
 		return val
 	}
 	return 0
+}
+
+func (e TrackEvent) BoolProp(key string) (bool, error) {
+	if val, ok := e.Properties[key].(bool); ok {
+		return val, nil
+	}
+	return false, fmt.Errorf("property %q is not a bool", key)
 }
