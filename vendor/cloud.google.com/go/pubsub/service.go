@@ -106,3 +106,38 @@ func (r *publishRetryer) Retry(err error) (pause time.Duration, shouldRetry bool
 	}
 	return r.defaultRetryer.Retry(err)
 }
+
+var (
+	exactlyOnceDeliveryTemporaryRetryErrors = map[codes.Code]struct{}{
+		codes.DeadlineExceeded:  {},
+		codes.ResourceExhausted: {},
+		codes.Aborted:           {},
+		codes.Internal:          {},
+		codes.Unavailable:       {},
+	}
+)
+
+// contains checks if grpc code v is in t, a set of retryable error codes.
+func contains(v codes.Code, t map[codes.Code]struct{}) bool {
+	_, ok := t[v]
+	return ok
+}
+
+func newExactlyOnceBackoff() gax.Backoff {
+	return gax.Backoff{
+		Initial:    1 * time.Second,
+		Max:        64 * time.Second,
+		Multiplier: 2,
+	}
+}
+
+// parseResourceName parses the project and resource ID from a fully qualified name.
+// For example, "projects/p/topics/my-topic" -> "p", "my-topic".
+// Returns empty strings if the input is misformatted.
+func parseResourceName(fqn string) (string, string) {
+	s := strings.Split(fqn, "/")
+	if len(s) != 4 {
+		return "", ""
+	}
+	return s[1], s[len(s)-1]
+}
