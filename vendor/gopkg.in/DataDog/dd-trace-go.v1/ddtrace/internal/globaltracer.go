@@ -6,64 +6,31 @@
 package internal // import "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/internal"
 
 import (
-	"sync"
+	_ "unsafe" // required by go:linkname
 
+	v2 "github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 )
 
-var (
-	mu           sync.RWMutex   // guards globalTracer
-	globalTracer ddtrace.Tracer = &NoopTracer{}
-)
+//go:linkname setGlobalTracer github.com/DataDog/dd-trace-go/v2/ddtrace/tracer.setGlobalTracer
+func setGlobalTracer(tracer v2.Tracer)
+
+//go:linkname getGlobalTracer github.com/DataDog/dd-trace-go/v2/ddtrace/tracer.getGlobalTracer
+func getGlobalTracer() v2.Tracer
 
 // SetGlobalTracer sets the global tracer to t.
 func SetGlobalTracer(t ddtrace.Tracer) {
-	mu.Lock()
-	old := globalTracer
-	globalTracer = t
-	// Unlock before potentially calling Stop, to allow any shutdown mechanism
-	// to retrieve the active tracer without causing a deadlock on mutex mu.
-	mu.Unlock()
-	if !Testing {
-		// avoid infinite loop when calling (*mocktracer.Tracer).Stop
-		old.Stop()
-	}
+	rt := t.(TracerV2Adapter)
+	setGlobalTracer(rt.Tracer)
 }
 
 // GetGlobalTracer returns the currently active tracer.
 func GetGlobalTracer() ddtrace.Tracer {
-	mu.RLock()
-	defer mu.RUnlock()
-	return globalTracer
+	tr := getGlobalTracer()
+	return TracerV2Adapter{Tracer: tr}
 }
 
-// Testing is set to true when the mock tracer is active. It usually signifies that we are in a test
-// environment. This value is used by tracer.Start to prevent overriding the GlobalTracer in tests.
-var Testing = false
-
-var _ ddtrace.Tracer = (*NoopTracer)(nil)
-
-// NoopTracer is an implementation of ddtrace.Tracer that is a no-op.
-type NoopTracer struct{}
-
-// StartSpan implements ddtrace.Tracer.
-func (NoopTracer) StartSpan(operationName string, opts ...ddtrace.StartSpanOption) ddtrace.Span {
-	return NoopSpan{}
-}
-
-// SetServiceInfo implements ddtrace.Tracer.
-func (NoopTracer) SetServiceInfo(name, app, appType string) {}
-
-// Extract implements ddtrace.Tracer.
-func (NoopTracer) Extract(carrier interface{}) (ddtrace.SpanContext, error) {
-	return NoopSpanContext{}, nil
-}
-
-// Inject implements ddtrace.Tracer.
-func (NoopTracer) Inject(context ddtrace.SpanContext, carrier interface{}) error { return nil }
-
-// Stop implements ddtrace.Tracer.
-func (NoopTracer) Stop() {}
+var NoopTracerV2 = TracerV2Adapter{Tracer: &v2.NoopTracer{}}
 
 var _ ddtrace.Span = (*NoopSpan)(nil)
 
@@ -71,22 +38,22 @@ var _ ddtrace.Span = (*NoopSpan)(nil)
 type NoopSpan struct{}
 
 // SetTag implements ddtrace.Span.
-func (NoopSpan) SetTag(key string, value interface{}) {}
+func (NoopSpan) SetTag(_ string, _ interface{}) {}
 
 // SetOperationName implements ddtrace.Span.
-func (NoopSpan) SetOperationName(operationName string) {}
+func (NoopSpan) SetOperationName(_ string) {}
 
 // BaggageItem implements ddtrace.Span.
-func (NoopSpan) BaggageItem(key string) string { return "" }
+func (NoopSpan) BaggageItem(_ string) string { return "" }
 
 // SetBaggageItem implements ddtrace.Span.
-func (NoopSpan) SetBaggageItem(key, val string) {}
+func (NoopSpan) SetBaggageItem(_, _ string) {}
 
 // Finish implements ddtrace.Span.
-func (NoopSpan) Finish(opts ...ddtrace.FinishOption) {}
+func (NoopSpan) Finish(_ ...ddtrace.FinishOption) {}
 
 // Tracer implements ddtrace.Span.
-func (NoopSpan) Tracer() ddtrace.Tracer { return NoopTracer{} }
+func (NoopSpan) Tracer() ddtrace.Tracer { return NoopTracerV2 }
 
 // Context implements ddtrace.Span.
 func (NoopSpan) Context() ddtrace.SpanContext { return NoopSpanContext{} }
@@ -103,4 +70,4 @@ func (NoopSpanContext) SpanID() uint64 { return 0 }
 func (NoopSpanContext) TraceID() uint64 { return 0 }
 
 // ForeachBaggageItem implements ddtrace.SpanContext.
-func (NoopSpanContext) ForeachBaggageItem(handler func(k, v string) bool) {}
+func (NoopSpanContext) ForeachBaggageItem(_ func(k, v string) bool) {}
