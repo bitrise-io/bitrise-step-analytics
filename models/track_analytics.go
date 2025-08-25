@@ -17,6 +17,12 @@ func (e TrackEvent) StringProp(key string) string {
 }
 
 func (e TrackEvent) IntProp(key string) int {
+	// event.Properties is untyped and it's unmarshalled from a JSON payload.
+	// JSON numbers are unmarshaled as float64 because the JSON spec only has a `number` type
+	if val, ok := e.Properties[key].(float64); ok {
+		return int(val)
+	}
+	// Fallback for cases where it might actually be an int
 	if val, ok := e.Properties[key].(int); ok {
 		return val
 	}
