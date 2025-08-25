@@ -37,6 +37,11 @@ func appStoreConnectRequests(client *statsd.Client, event models.TrackEvent) {
 	tags = append(tags, "endpoint:"+endpoint)
 
 	_ = client.Incr("appstoreconnect_requests", tags, 1)
+
+	duration := event.IntProp("duration_ms")
+	if duration != 0 {
+		_ = client.Histogram("appstoreconnect_request_duration", float64(duration), tags, 1)
+	}
 }
 
 // Schema: https://github.com/bitrise-io/data-events/blob/main/schemas/data-team-229312/events/step_appstoreconnect_auth_error.json
