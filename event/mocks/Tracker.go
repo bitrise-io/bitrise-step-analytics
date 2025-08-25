@@ -12,6 +12,20 @@ type Tracker struct {
 	mock.Mock
 }
 
+// HealthCheck provides a mock function with no fields
+func (_m *Tracker) HealthCheck() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Send provides a mock function with given fields: analytics
 func (_m *Tracker) Send(analytics models.TrackEvent) error {
 	ret := _m.Called(analytics)
