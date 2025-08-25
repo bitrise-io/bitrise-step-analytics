@@ -2,6 +2,7 @@ package stepmetrics
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/DataDog/datadog-go/v5/statsd"
@@ -16,6 +17,8 @@ func CreateMetricsFromEvent(client *statsd.Client, event models.TrackEvent) {
 		appStoreConnectRequests(client, event)
 	case "step_appstoreconnect_auth_error":
 		appStoreConnectAuthErrors(client)
+	case "cli_tool_setup":
+		cliToolSetup(client, event)
 	}
 }
 
@@ -58,4 +61,31 @@ func normalizeEndpoint(endpoint string) string {
 	// /v1/bundleids/22x3m5y2l3/bundleidcapabilities
 	normalizePattern := regexp.MustCompile(`(\/v1\/(?:certificates|devices|profiles|bundleids))\/([a-zA-Z0-9-_]+)`)
 	return normalizePattern.ReplaceAllString(endpoint, "$1/{id}")
+}
+
+// Schema: https://github.com/bitrise-io/data-events/blob/main/schemas/data-team-229312/events/cli_tool_setup.json
+func cliToolSetup(client *statsd.Client, event models.TrackEvent) {
+	tags := []string{
+		"provider:" + event.StringProp("provider"),
+		"tool_name:" + event.StringProp("tool_name"),
+		"cli_version:" + event.StringProp("cli_version"),
+	}
+
+	isSuccessful, err := event.BoolProp("is_successful")
+	if err == nil {
+		tags = append(tags, fmt.Sprintf("is_successful:%t", isSuccessful))
+	} else {
+		// TODO: proper WARN log level once logging is fixed
+		log.Println("'is_successful' property of 'cli_tool_setup' is not a bool")
+	}
+
+	isCI, err := event.BoolProp("is_ci")
+	if err == nil {
+		tags = append(tags, fmt.Sprintf("is_ci:%t", isCI))
+	} else {
+		// TODO: proper WARN log level once logging is fixed
+		log.Println("'is_ci' property of 'cli_tool_setup' is not a bool")
+	}
+
+	_ = client.Incr("cli_tool_setup", tags, 1)
 }
