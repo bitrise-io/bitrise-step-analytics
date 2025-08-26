@@ -15,6 +15,7 @@ import (
 
 type Tracker interface {
 	Send(analytics models.TrackEvent) error
+	HealthCheck() error
 }
 
 type tracker struct {
@@ -57,6 +58,22 @@ func (t tracker) Send(event models.TrackEvent) error {
 		Data: payload,
 	}).Get(*t.context)
 	return err
+}
+
+func (t tracker) HealthCheck() error {
+	ctx, cancel := context.WithTimeout(*t.context, 5*time.Second)
+	defer cancel()
+	
+	// Test if the topic exists and we can access it
+	exists, err := t.topic.Exists(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check topic existence: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("PubSub topic does not exist")
+	}
+	
+	return nil
 }
 
 func convertEpochInMicrosecondsToBigQueryTimestampFormat(timestamp int64) string {

@@ -18,6 +18,9 @@ func New(config configs.Config) *mux.Router {
 	}
 
 	r.Handle("/", middlewareProvider.CommonMiddleware().ThenFunc(service.RootHandler))
+	r.Handle("/liveness", middlewareProvider.CommonMiddleware().ThenFunc(service.LivenessHandler)).Methods("GET")
+	r.Handle("/readiness", middlewareProvider.MiddlewareWithTracker().Then(
+		httpresponse.InternalErrHandlerFuncAdapter(service.ReadinessHandler))).Methods("GET")
 	r.Handle("/logs", middlewareProvider.MiddlewareWithClient().Then(
 		httpresponse.InternalErrHandlerFuncAdapter(service.CustomLogsPostHandler))).Methods("POST")
 	r.Handle("/tools", middlewareProvider.MiddlewareWithClient().Then(
