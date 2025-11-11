@@ -36,6 +36,14 @@ func appStoreConnectRequests(client *statsd.Client, event models.TrackEvent) {
 	endpoint := normalizeEndpoint(event.StringProp("endpoint"))
 	tags = append(tags, "endpoint:"+endpoint)
 
+	isRetry, err := event.BoolProp("is_retry")
+	if err == nil {
+		tags = append(tags, fmt.Sprintf("is_retry:%t", isRetry))
+	} else {
+		// TODO: proper WARN log level once logging is fixed
+		log.Println("'is_retry' property of 'appstoreconnect_requests' is not a bool")
+	}
+
 	_ = client.Incr("appstoreconnect_requests", tags, 1)
 
 	duration := event.IntProp("duration_ms")
