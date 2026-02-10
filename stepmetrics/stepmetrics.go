@@ -19,6 +19,8 @@ func CreateMetricsFromEvent(client *statsd.Client, event models.TrackEvent) {
 		appStoreConnectAuthErrors(client)
 	case "cli_tool_setup":
 		cliToolSetup(client, event)
+	case "cli_step_activation":
+		cliStepActivation(client, event)
 	}
 }
 
@@ -96,4 +98,32 @@ func cliToolSetup(client *statsd.Client, event models.TrackEvent) {
 	}
 
 	_ = client.Incr("cli_tool_setup", tags, 1)
+}
+
+func cliStepActivation(client *statsd.Client, event models.TrackEvent) {
+	tags := []string{
+		"activation_type:" + event.StringProp("activation_type"),
+		"cli_version:" + event.StringProp("cli_version"),
+	}
+
+	isSuccessful, err := event.BoolProp("is_successful")
+	if err == nil {
+		tags = append(tags, fmt.Sprintf("is_successful:%t", isSuccessful))
+	} else {
+		log.Println("'is_successful' property of 'cli_step_activation' is not a bool")
+	}
+
+	isCI, err := event.BoolProp("is_ci")
+	if err == nil {
+		tags = append(tags, fmt.Sprintf("is_ci:%t", isCI))
+	} else {
+		log.Println("'is_ci' property of 'cli_step_activation' is not a bool")
+	}
+
+	_ = client.Incr("cli_step_activation", tags, 1)
+
+	duration := event.IntProp("duration_ms")
+	if duration != 0 {
+		_ = client.Histogram("cli_step_activation_duration", float64(duration), tags, 1)
+	}
 }
