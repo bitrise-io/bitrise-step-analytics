@@ -21,6 +21,8 @@ func CreateMetricsFromEvent(client *statsd.Client, event models.TrackEvent) {
 		cliToolSetup(client, event)
 	case "cli_step_activation":
 		cliStepActivation(client, event)
+	case "step_finished":
+		stepFinished(client, event)
 	}
 }
 
@@ -125,5 +127,19 @@ func cliStepActivation(client *statsd.Client, event models.TrackEvent) {
 	duration := event.IntProp("duration_ms")
 	if duration != 0 {
 		_ = client.Histogram("cli_step_activation_duration", float64(duration), tags, 1)
+	}
+}
+
+// Schema: https://github.com/bitrise-io/data-events/blob/main/schemas/data-team-229312/events/step_finished.json
+func stepFinished(client *statsd.Client, event models.TrackEvent) {
+	tags := []string{
+		"status:" + event.StringProp("status"),
+	}
+
+	_ = client.Incr("step_finished_total", tags, 1)
+
+	runtime := event.IntProp("runtime")
+	if runtime != 0 {
+		_ = client.Histogram("step_runtime_seconds", float64(runtime), tags, 1)
 	}
 }
