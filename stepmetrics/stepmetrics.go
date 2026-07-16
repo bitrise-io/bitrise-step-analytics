@@ -130,10 +130,22 @@ func cliStepActivation(client *statsd.Client, event models.TrackEvent) {
 	}
 }
 
+var trackedSteps = map[string]bool{
+	"git-clone":                         true,
+	"deploy-to-bitrise-io":              true,
+	"activate-ssh-key":				     true,
+	"script":                            true,
+}
+
 // Schema: https://github.com/bitrise-io/data-events/blob/main/schemas/data-team-229312/events/step_finished.json
 func stepFinished(client *statsd.Client, event models.TrackEvent) {
 	tags := []string{
 		"status:" + event.StringProp("status"),
+	}
+
+	// Only tag with step_id for the known, bounded set of tracked steps to keep cardinality in check.
+	if stepID := event.StringProp("step_id"); trackedSteps[stepID] {
+		tags = append(tags, "step_id:"+stepID)
 	}
 
 	_ = client.Incr("step_finished_total", tags, 1)
