@@ -7,12 +7,16 @@ package httptrace
 
 import (
 	"fmt"
-	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/DataDog/dd-trace-go/v2/internal"
+	"github.com/DataDog/dd-trace-go/v2/internal/appsec"
+	appsecconfig "github.com/DataDog/dd-trace-go/v2/internal/appsec/config"
+	"github.com/DataDog/dd-trace-go/v2/internal/env"
 	"github.com/DataDog/dd-trace-go/v2/internal/log"
 )
 
@@ -29,19 +33,32 @@ const (
 	envServerErrorStatuses = "DD_TRACE_HTTP_SERVER_ERROR_STATUSES"
 	// envInferredProxyServicesEnabled is the name of the env var used for enabling inferred span tracing
 	envInferredProxyServicesEnabled = "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED"
+	// envQueryStringAllowlist is the name of the env var used to specify which query string parameter keys
+	// to keep in the http.url span tag. When set, only these keys are retained and the expensive default
+	// obfuscation regex is bypassed. Comma-separated list of parameter names.
+	envQueryStringAllowlist = "DD_TRACE_HTTP_URL_QUERY_STRING_ALLOWLIST"
+	// envClientQueryStringAllowlist overrides envQueryStringAllowlist for HTTP client spans only.
+	envClientQueryStringAllowlist = "DD_TRACE_HTTP_URL_QUERY_STRING_ALLOWLIST_CLIENT"
+	// envServerQueryStringAllowlist overrides envQueryStringAllowlist for HTTP server spans only.
+	envServerQueryStringAllowlist = "DD_TRACE_HTTP_URL_QUERY_STRING_ALLOWLIST_SERVER"
 )
 
 // defaultQueryStringRegexp is the regexp used for query string obfuscation if [EnvQueryStringRegexp] is empty.
 var defaultQueryStringRegexp = regexp.MustCompile("(?i)(?:p(?:ass)?w(?:or)?d|pass(?:_?phrase)?|secret|(?:api_?|private_?|public_?|access_?|secret_?)key(?:_?id)?|token|consumer_?(?:id|key|secret)|sign(?:ed|ature)?|auth(?:entication|orization)?)(?:(?:\\s|%20)*(?:=|%3D)[^&]+|(?:\"|%22)(?:\\s|%20)*(?::|%3A)(?:\\s|%20)*(?:\"|%22)(?:%2[^2]|%[^2]|[^\"%])+(?:\"|%22))|bearer(?:\\s|%20)+[a-z0-9\\._\\-]|token(?::|%3A)[a-z0-9]{13}|gh[opsu]_[0-9a-zA-Z]{36}|ey[I-L](?:[\\w=-]|%3D)+\\.ey[I-L](?:[\\w=-]|%3D)+(?:\\.(?:[\\w.+\\/=-]|%3D|%2F|%2B)+)?|[\\-]{5}BEGIN(?:[a-z\\s]|%20)+PRIVATE(?:\\s|%20)KEY[\\-]{5}[^\\-]+[\\-]{5}END(?:[a-z\\s]|%20)+PRIVATE(?:\\s|%20)KEY|ssh-rsa(?:\\s|%20)*(?:[a-z0-9\\/\\.+]|%2F|%5C|%2B){100,}")
 
 type config struct {
-	queryStringRegexp            *regexp.Regexp // specifies the regexp to use for query string obfuscation.
-	queryString                  bool           // reports whether the query string should be included in the URL span tag.
-	traceClientIP                bool
-	isStatusError                func(statusCode int) bool
-	inferredProxyServicesEnabled bool
-	allowAllBaggage              bool                // tag all baggage items when true (DD_TRACE_BAGGAGE_TAG_KEYS="*").
-	baggageTagKeys               map[string]struct{} // when allowAllBaggage is false, only tag baggage items whose keys are listed here.
+	queryStringRegexp                        *regexp.Regexp      // specifies the regexp to use for query string obfuscation.
+	queryString                              bool                // reports whether the query string should be included in the URL span tag.
+	clientQueryStringAllowlist               map[string]struct{} // when non-nil, only keep these query parameter keys for client spans and skip regex obfuscation.
+	serverQueryStringAllowlist               map[string]struct{} // when non-nil, only keep these query parameter keys for server spans and skip regex obfuscation.
+	traceClientIP                            bool
+	isStatusError                            func(statusCode int) bool
+	inferredProxyServicesEnabled             bool
+	allowAllBaggage                          bool                // tag all baggage items when true (DD_TRACE_BAGGAGE_TAG_KEYS="*").
+	baggageTagKeys                           map[string]struct{} // when allowAllBaggage is false, only tag baggage items whose keys are listed here.
+	resourceRenamingEnabled                  *bool
+	resourceRenamingAlwaysSimplifiedEndpoint bool
+	appsecEnabledMode                        func() bool // first AppSec enablement mode at startup.
 }
 
 func (c config) String() string {
@@ -55,18 +72,20 @@ func ResetCfg() {
 
 func newConfig() config {
 	c := config{
-		queryString:                  !internal.BoolEnv(envQueryStringDisabled, false),
-		queryStringRegexp:            QueryStringRegexp(),
-		traceClientIP:                internal.BoolEnv(envTraceClientIPEnabled, false),
-		isStatusError:                isServerError,
-		inferredProxyServicesEnabled: internal.BoolEnv(envInferredProxyServicesEnabled, false),
-		baggageTagKeys:               make(map[string]struct{}),
+		queryString:                              !internal.BoolEnv(envQueryStringDisabled, false),
+		queryStringRegexp:                        QueryStringRegexp(),
+		traceClientIP:                            internal.BoolEnv(envTraceClientIPEnabled, false),
+		isStatusError:                            isServerError,
+		inferredProxyServicesEnabled:             internal.BoolEnv(envInferredProxyServicesEnabled, false),
+		baggageTagKeys:                           make(map[string]struct{}),
+		resourceRenamingAlwaysSimplifiedEndpoint: internal.BoolEnv("DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT", false),
+		appsecEnabledMode:                        sync.OnceValue(appsecEnabledAtStartup),
 	}
-	if v, ok := os.LookupEnv("DD_TRACE_BAGGAGE_TAG_KEYS"); ok {
+	if v, ok := env.Lookup("DD_TRACE_BAGGAGE_TAG_KEYS"); ok {
 		if v == "*" {
 			c.allowAllBaggage = true
 		} else {
-			for _, part := range strings.Split(v, ",") {
+			for part := range strings.SplitSeq(v, ",") {
 				key := strings.TrimSpace(part)
 				if key == "" {
 					continue
@@ -77,11 +96,34 @@ func newConfig() config {
 	} else {
 		c.baggageTagKeys = defaultBaggageTagKeys()
 	}
-	v := os.Getenv(envServerErrorStatuses)
+	v := env.Get(envServerErrorStatuses)
 	if fn := GetErrorCodesFromInput(v); fn != nil {
 		c.isStatusError = fn
 	}
+	if vv, ok := internal.BoolEnvNoDefault("DD_TRACE_RESOURCE_RENAMING_ENABLED"); ok {
+		c.resourceRenamingEnabled = &vv
+	}
+	// Global allowlist applies to both client and server; specific env vars override it.
+	if v, ok := env.Lookup(envQueryStringAllowlist); ok && v != "" {
+		globalAllowlist := parseAllowlist(v)
+		c.clientQueryStringAllowlist = globalAllowlist
+		c.serverQueryStringAllowlist = globalAllowlist
+	}
+	if v, ok := env.Lookup(envClientQueryStringAllowlist); ok && v != "" {
+		c.clientQueryStringAllowlist = parseAllowlist(v)
+	}
+	if v, ok := env.Lookup(envServerQueryStringAllowlist); ok && v != "" {
+		c.serverQueryStringAllowlist = parseAllowlist(v)
+	}
 	return c
+}
+
+func appsecEnabledAtStartup() bool {
+	enabled, set, _ := appsecconfig.IsEnabledByEnvironment()
+	if set {
+		return enabled
+	}
+	return appsec.Enabled()
 }
 
 func isServerError(statusCode int) bool {
@@ -89,7 +131,7 @@ func isServerError(statusCode int) bool {
 }
 
 func QueryStringRegexp() *regexp.Regexp {
-	if s, ok := os.LookupEnv(EnvQueryStringRegexp); !ok {
+	if s, ok := env.Lookup(EnvQueryStringRegexp); !ok {
 		return defaultQueryStringRegexp
 	} else if s == "" {
 		log.Debug("%s is set but empty. Query string obfuscation will be disabled.", EnvQueryStringRegexp)
@@ -113,8 +155,8 @@ func GetErrorCodesFromInput(s string) func(statusCode int) bool {
 	}
 	var codes []int
 	var ranges [][]int
-	vals := strings.Split(s, ",")
-	for _, val := range vals {
+	vals := strings.SplitSeq(s, ",")
+	for val := range vals {
 		// "-" indicates a range of values
 		if strings.Contains(val, "-") {
 			bounds := strings.Split(val, "-")
@@ -143,10 +185,8 @@ func GetErrorCodesFromInput(s string) func(statusCode int) bool {
 		}
 	}
 	return func(statusCode int) bool {
-		for _, c := range codes {
-			if c == statusCode {
-				return true
-			}
+		if slices.Contains(codes, statusCode) {
+			return true
 		}
 		for _, bounds := range ranges {
 			if statusCode >= bounds[0] && statusCode <= bounds[1] {
@@ -163,6 +203,27 @@ func defaultBaggageTagKeys() map[string]struct{} {
 		"account.id": {},
 		"session.id": {},
 	}
+}
+
+// getQueryStringAllowlist returns the allowlist for the given side (client or server).
+func (c *config) getQueryStringAllowlist(isClient bool) map[string]struct{} {
+	if isClient {
+		return c.clientQueryStringAllowlist
+	}
+	return c.serverQueryStringAllowlist
+}
+
+// parseAllowlist parses a comma-separated string into a map of allowed keys.
+func parseAllowlist(v string) map[string]struct{} {
+	m := make(map[string]struct{})
+	for part := range strings.SplitSeq(v, ",") {
+		key := strings.TrimSpace(part)
+		if key == "" {
+			continue
+		}
+		m[key] = struct{}{}
+	}
+	return m
 }
 
 // tagBaggageKey returns true if we should tag this baggage key.
