@@ -102,10 +102,18 @@ func cliToolSetup(client *statsd.Client, event models.TrackEvent) {
 	_ = client.Incr("cli_tool_setup", tags, 1)
 }
 
+// Schema: https://github.com/bitrise-io/data-events/blob/main/schemas/data-team-229312/events/cli_step_activation.json
 func cliStepActivation(client *statsd.Client, event models.TrackEvent) {
 	tags := []string{
 		"activation_type:" + event.StringProp("activation_type"),
 		"cli_version:" + event.StringProp("cli_version"),
+	}
+
+	// Which StepLib inventory served the step: "steplib_api" or "steplib". Only
+	// steplib refs have one, so it is absent for git and path refs — tagged only
+	// when present, to avoid an empty tag value on those.
+	if inventorySource := event.StringProp("inventory_source"); inventorySource != "" {
+		tags = append(tags, "inventory_source:"+inventorySource)
 	}
 
 	isSuccessful, err := event.BoolProp("is_successful")
