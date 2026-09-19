@@ -7,6 +7,7 @@ package instrumentation
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/ext"
@@ -18,8 +19,10 @@ const (
 	Package99DesignsGQLGen      Package = "99designs/gqlgen"
 	PackageAWSSDKGo             Package = "aws/aws-sdk-go"
 	PackageAWSSDKGoV2           Package = "aws/aws-sdk-go-v2"
+	PackageAWSDatadogLambdaGo   Package = "aws/datadog-lambda-go"
 	PackageBradfitzGoMemcache   Package = "bradfitz/gomemcache"
 	PackageGCPPubsub            Package = "cloud.google.com/go/pubsub.v1"
+	PackageGCPPubsubV2          Package = "cloud.google.com/go/pubsub.v2"
 	PackageConfluentKafkaGo     Package = "confluentinc/confluent-kafka-go/kafka"
 	PackageConfluentKafkaGoV2   Package = "confluentinc/confluent-kafka-go/kafka.v2"
 	PackageDatabaseSQL          Package = "database/sql"
@@ -45,36 +48,42 @@ const (
 	PackageNetHTTP   Package = "net/http"
 	PackageIBMSarama Package = "IBM/sarama"
 
-	PackageValyalaFastHTTP         Package = "valyala/fasthttp"
-	PackageUrfaveNegroni           Package = "urfave/negroni"
-	PackageTwitchTVTwirp           Package = "twitchtv/twirp"
-	PackageTidwallBuntDB           Package = "tidwall/buntdb"
-	PackageSyndtrGoLevelDB         Package = "syndtr/goleveldb"
-	PackageSirupsenLogrus          Package = "sirupsen/logrus"
-	PackageShopifySarama           Package = "Shopify/sarama"
-	PackageSegmentioKafkaGo        Package = "segmentio/kafka-go"
-	PackageRedisGoRedisV9          Package = "redis/go-redis.v9"
-	PackageOlivereElasticV5        Package = "olivere/elastic.v5"
-	PackageMiekgDNS                Package = "miekg/dns"
-	PackageLabstackEchoV4          Package = "labstack/echo.v4"
-	PackageK8SClientGo             Package = "k8s.io/client-go"
-	PackageK8SGatewayAPI           Package = "k8s.io/gateway-api"
-	PackageJulienschmidtHTTPRouter Package = "julienschmidt/httprouter"
-	PackageJmoironSQLx             Package = "jmoiron/sqlx"
-	PackageJackcPGXV5              Package = "jackc/pgx.v5"
-	PackageHashicorpConsulAPI      Package = "hashicorp/consul"
-	PackageHashicorpVaultAPI       Package = "hashicorp/vault"
-	PackageGraphQLGoGraphQL        Package = "graphql-go/graphql"
-	PackageGraphGophersGraphQLGo   Package = "graph-gophers/graphql-go"
-	PackageGormIOGormV1            Package = "gorm.io/gorm.v1"
-	PackageGorillaMux              Package = "gorilla/mux"
-	PackageUptraceBun              Package = "uptrace/bun"
-	PackageLogSlog                 Package = "log/slog"
+	PackageValyalaFastHTTP           Package = "valyala/fasthttp"
+	PackageUrfaveNegroni             Package = "urfave/negroni"
+	PackageTwitchTVTwirp             Package = "twitchtv/twirp"
+	PackageTidwallBuntDB             Package = "tidwall/buntdb"
+	PackageSyndtrGoLevelDB           Package = "syndtr/goleveldb"
+	PackageSirupsenLogrus            Package = "sirupsen/logrus"
+	PackageRsZerolog                 Package = "rs/zerolog"
+	PackageShopifySarama             Package = "Shopify/sarama"
+	PackageSegmentioKafkaGo          Package = "segmentio/kafka-go"
+	PackageTwmbFranzGo               Package = "twmb/franz-go"
+	PackageRedisGoRedisV9            Package = "redis/go-redis.v9"
+	PackageOlivereElasticV5          Package = "olivere/elastic.v5"
+	PackageMiekgDNS                  Package = "miekg/dns"
+	PackageLabstackEchoV4            Package = "labstack/echo.v4"
+	PackageK8SClientGo               Package = "k8s.io/client-go"
+	PackageK8SGatewayAPI             Package = "k8s.io/gateway-api"
+	PackageJulienschmidtHTTPRouter   Package = "julienschmidt/httprouter"
+	PackageMark3LabsMCPGo            Package = "mark3labs/mcp-go"
+	PackageJmoironSQLx               Package = "jmoiron/sqlx"
+	PackageJackcPGXV5                Package = "jackc/pgx.v5"
+	PackageHashicorpConsulAPI        Package = "hashicorp/consul"
+	PackageHashicorpVaultAPI         Package = "hashicorp/vault"
+	PackageGraphQLGoGraphQL          Package = "graphql-go/graphql"
+	PackageGraphGophersGraphQLGo     Package = "graph-gophers/graphql-go"
+	PackageGormIOGormV1              Package = "gorm.io/gorm.v1"
+	PackageGorillaMux                Package = "gorilla/mux"
+	PackageUptraceBun                Package = "uptrace/bun"
+	PackageLogSlog                   Package = "log/slog"
+	PackageModelContextProtocolGoSDK Package = "modelcontextprotocol/go-sdk"
 
-	PackageValkeyIoValkeyGo         Package = "valkey-io/valkey-go"
-	PackageEnvoyProxyGoControlPlane Package = "envoyproxy/go-control-plane"
-	PackageOS                       Package = "os"
-	PackageRedisRueidis             Package = "redis/rueidis"
+	PackageValkeyIoValkeyGo               Package = "valkey-io/valkey-go"
+	PackageAzureAPIMCallout               Package = "azure/apim-callout"
+	PackageEnvoyProxyGoControlPlane       Package = "envoyproxy/go-control-plane"
+	PackageHAProxyStreamProcessingOffload Package = "haproxy/stream-processing-offload"
+	PackageOS                             Package = "os"
+	PackageRedisRueidis                   Package = "redis/rueidis"
 )
 
 // These packages have been removed in v2, but they are kept here for the transitional version.
@@ -166,6 +175,18 @@ var packages = map[Package]PackageInfo{
 			},
 		},
 	},
+	PackageAWSDatadogLambdaGo: {
+		TracedPackage: "github.com/DataDog/dd-trace-go/contrib/aws/datadog-lambda-go",
+		EnvVarPrefix:  "LAMBDA",
+		naming: map[Component]componentNames{
+			ComponentDefault: {
+				useDDServiceV0:     false,
+				buildServiceNameV0: staticName("aws.lambda"),
+				buildOpNameV0:      staticName("aws.lambda"),
+				buildOpNameV1:      staticName("aws.lambda"),
+			},
+		},
+	},
 	PackageBradfitzGoMemcache: {
 		TracedPackage: "github.com/bradfitz/gomemcache",
 		EnvVarPrefix:  "MEMCACHE",
@@ -180,6 +201,24 @@ var packages = map[Package]PackageInfo{
 	},
 	PackageGCPPubsub: {
 		TracedPackage: "cloud.google.com/go/pubsub",
+		EnvVarPrefix:  "GCP_PUBSUB",
+		naming: map[Component]componentNames{
+			ComponentConsumer: {
+				useDDServiceV0:     false,
+				buildServiceNameV0: staticName(""),
+				buildOpNameV0:      staticName("pubsub.receive"),
+				buildOpNameV1:      staticName("gcp.pubsub.process"),
+			},
+			ComponentProducer: {
+				useDDServiceV0:     false,
+				buildServiceNameV0: staticName(""),
+				buildOpNameV0:      staticName("pubsub.publish"),
+				buildOpNameV1:      staticName("gcp.pubsub.send"),
+			},
+		},
+	},
+	PackageGCPPubsubV2: {
+		TracedPackage: "cloud.google.com/go/pubsub/v2",
 		EnvVarPrefix:  "GCP_PUBSUB",
 		naming: map[Component]componentNames{
 			ComponentConsumer: {
@@ -571,6 +610,10 @@ var packages = map[Package]PackageInfo{
 		TracedPackage: "github.com/sirupsen/logrus",
 		EnvVarPrefix:  "LOGRUS",
 	},
+	PackageRsZerolog: {
+		TracedPackage: "github.com/rs/zerolog",
+		EnvVarPrefix:  "ZEROLOG",
+	},
 	PackageShopifySarama: {
 		TracedPackage: "github.com/Shopify/sarama",
 		EnvVarPrefix:  "SARAMA",
@@ -591,6 +634,24 @@ var packages = map[Package]PackageInfo{
 	},
 	PackageSegmentioKafkaGo: {
 		TracedPackage: "github.com/segmentio/kafka-go",
+		EnvVarPrefix:  "KAFKA",
+		naming: map[Component]componentNames{
+			ComponentConsumer: {
+				useDDServiceV0:     true,
+				buildServiceNameV0: staticName("kafka"),
+				buildOpNameV0:      staticName("kafka.consume"),
+				buildOpNameV1:      staticName("kafka.process"),
+			},
+			ComponentProducer: {
+				useDDServiceV0:     false,
+				buildServiceNameV0: staticName("kafka"),
+				buildOpNameV0:      staticName("kafka.produce"),
+				buildOpNameV1:      staticName("kafka.send"),
+			},
+		},
+	},
+	PackageTwmbFranzGo: {
+		TracedPackage: "github.com/twmb/franz-go",
 		EnvVarPrefix:  "KAFKA",
 		naming: map[Component]componentNames{
 			ComponentConsumer: {
@@ -754,6 +815,12 @@ var packages = map[Package]PackageInfo{
 	},
 	PackageGormIOGormV1: {
 		TracedPackage: "gorm.io/gorm",
+		naming: map[Component]componentNames{
+			ComponentDefault: {
+				useDDServiceV0:     false,
+				buildServiceNameV0: staticName("gorm.db"),
+			},
+		},
 	},
 	PackageGorillaMux: {
 		TracedPackage: "github.com/gorilla/mux",
@@ -790,11 +857,41 @@ var packages = map[Package]PackageInfo{
 			},
 		},
 	},
+	PackageAzureAPIMCallout: {
+		TracedPackage: "azure/apim-callout",
+	},
 	PackageEnvoyProxyGoControlPlane: {
 		TracedPackage: "github.com/envoyproxy/go-control-plane",
 	},
+	PackageHAProxyStreamProcessingOffload: {
+		TracedPackage: "haproxy/stream-processing-offload",
+	},
 	PackageOS: {
 		TracedPackage: "os",
+	},
+	PackageMark3LabsMCPGo: {
+		TracedPackage: "github.com/mark3labs/mcp-go",
+		EnvVarPrefix:  "MCP",
+		naming: map[Component]componentNames{
+			ComponentServer: {
+				useDDServiceV0:     true,
+				buildServiceNameV0: staticName("mcp-server"),
+				buildOpNameV0:      staticName("mcp.server.request"),
+				buildOpNameV1:      staticName("mcp.server.request"),
+			},
+		},
+	},
+	PackageModelContextProtocolGoSDK: {
+		TracedPackage: "github.com/modelcontextprotocol/go-sdk",
+		EnvVarPrefix:  "MCP",
+		naming: map[Component]componentNames{
+			ComponentServer: {
+				useDDServiceV0:     true,
+				buildServiceNameV0: staticName("mcp-server"),
+				buildOpNameV0:      staticName("mcp.server.request"),
+				buildOpNameV1:      staticName("mcp.server.request"),
+			},
+		},
 	},
 	PackageEmickleiGoRestful: {
 		TracedPackage: "github.com/emicklei/go-restful",
@@ -896,8 +993,6 @@ func isAWSMessagingSendOp(awsService, awsOperation string) bool {
 // GetPackages returns a map of Package to the corresponding instrumented module.
 func GetPackages() map[Package]PackageInfo {
 	cp := make(map[Package]PackageInfo)
-	for pkg, info := range packages {
-		cp[pkg] = info
-	}
+	maps.Copy(cp, packages)
 	return cp
 }
