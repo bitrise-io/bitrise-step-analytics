@@ -9,6 +9,7 @@ import (
 	"context"
 	"math"
 
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/ext"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/internal"
 	"github.com/DataDog/dd-trace-go/v2/internal/appsec"
@@ -17,6 +18,7 @@ import (
 	"github.com/DataDog/dd-trace-go/v2/internal/normalizer"
 	"github.com/DataDog/dd-trace-go/v2/internal/stableconfig"
 	"github.com/DataDog/dd-trace-go/v2/internal/telemetry"
+	telemetrylog "github.com/DataDog/dd-trace-go/v2/internal/telemetry/log"
 	"github.com/DataDog/dd-trace-go/v2/internal/version"
 )
 
@@ -35,9 +37,11 @@ func Load(pkg Package) *Instrumentation {
 	tracer.MarkIntegrationImported(info.TracedPackage)
 
 	return &Instrumentation{
-		pkg:    pkg,
-		logger: newLogger(pkg),
-		info:   info,
+		logger:       newLogger(pkg),
+		telemetrylog: telemetrylog.With(telemetry.WithTags([]string{"integration:" + string(pkg)})),
+
+		pkg:  pkg,
+		info: info,
 	}
 }
 
@@ -53,9 +57,11 @@ func Version() string {
 
 // Instrumentation represents instrumentation for a package.
 type Instrumentation struct {
-	pkg    Package
-	logger Logger
-	info   PackageInfo
+	logger       Logger
+	telemetrylog *telemetrylog.Logger
+
+	pkg  Package
+	info PackageInfo
 }
 
 // ServiceName returns the default service name to be set for the given instrumentation component.
@@ -72,6 +78,27 @@ func (i *Instrumentation) ServiceName(component Component, opCtx OperationContex
 		return cfg.DDService
 	}
 	return n.buildServiceNameV0(opCtx)
+}
+
+const (
+	// ServiceSourceWithServiceOption is the service source value used when the service
+	// name is explicitly set via a WithService option.
+	ServiceSourceWithServiceOption = "opt.with_service"
+)
+
+// ServiceOverride bundles a service name with its source for use with
+// span.SetTag(ext.KeyServiceSource, instrumentation.ServiceOverride{...}).
+// This should be used instead of span.SetTag(ext.ServiceName, ...) to preserve
+// the service source information.
+type ServiceOverride = internal.ServiceOverride
+
+// ServiceNameWithSource returns a StartSpanOption that sets both the service
+// name and its source. The source tracks the origin of the service name
+// override for _dd.svc_src.
+func ServiceNameWithSource(name string, source string) tracer.StartSpanOption {
+	return func(cfg *tracer.StartSpanConfig) {
+		tracer.Tag(ext.KeyServiceSource, internal.ServiceOverride{Name: name, Source: source})(cfg)
+	}
 }
 
 // OperationName returns the operation name to be set for the given instrumentation component.
@@ -93,6 +120,27 @@ func (i *Instrumentation) Logger() Logger {
 	return i.logger
 }
 
+func (i *Instrumentation) TelemetryLog() *telemetrylog.Logger {
+	return i.telemetrylog
+}
+
+type TelemetryOrigin = telemetry.Origin
+
+const (
+	TelemetryOriginDefault = telemetry.OriginDefault
+	TelemetryOriginEnvVar  = telemetry.OriginEnvVar
+)
+
+func (i *Instrumentation) TelemetryRegisterAppConfig(key string, value any, origin TelemetryOrigin) {
+	telemetry.RegisterAppConfig(key, value, origin)
+}
+
+type AppEndpointAttributes = telemetry.AppEndpointAttributes
+
+func (i *Instrumentation) TelemetryRegisterAppEndpoint(opName string, resName string, attrs AppEndpointAttributes) {
+	telemetry.RegisterAppEndpoint(opName, resName, attrs)
+}
+
 func (i *Instrumentation) AnalyticsRate(defaultGlobal bool) float64 {
 	if internal.BoolEnv("DD_TRACE_"+i.info.EnvVarPrefix+"_ANALYTICS_ENABLED", false) {
 		return 1.0
@@ -109,6 +157,10 @@ func (i *Instrumentation) GlobalAnalyticsRate() float64 {
 
 func (i *Instrumentation) AppSecEnabled() bool {
 	return appsec.Enabled()
+}
+
+func (i *Instrumentation) APISecurityEndpointCollectionEnabled() bool {
+	return internal.BoolEnv("DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED", true)
 }
 
 func (i *Instrumentation) AppSecRASPEnabled() bool {
@@ -140,14 +192,18 @@ func (i *Instrumentation) WithExecutionTraced(ctx context.Context) context.Conte
 	return internal.WithExecutionTraced(ctx)
 }
 
+// PopExecutionTraced pops the top executionTracedKey from the GLS stack.
+// Must be paired with WithExecutionTraced when the traced scope ends.
+func (i *Instrumentation) PopExecutionTraced() {
+	internal.PopExecutionTraced()
+}
+
 type StatsdClient = internal.StatsdClient
 
 func (i *Instrumentation) StatsdClient(extraTags []string) (StatsdClient, error) {
 	addr := globalconfig.DogstatsdAddr()
 	tags := globalconfig.StatsTags()
-	for _, tag := range extraTags {
-		tags = append(tags, tag)
-	}
+	tags = append(tags, extraTags...)
 	return internal.NewStatsdClient(addr, tags)
 }
 

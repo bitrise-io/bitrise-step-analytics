@@ -12,6 +12,7 @@ import (
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/instrumentation/appsec/emitter/httpsec"
 	"github.com/DataDog/dd-trace-go/v2/instrumentation/options"
+	"github.com/DataDog/dd-trace-go/v2/internal"
 	"github.com/DataDog/dd-trace-go/v2/internal/appsec"
 )
 
@@ -22,6 +23,9 @@ type ServeConfig struct {
 	// Service specifies the service name to use. If left blank, the global service name
 	// will be inherited.
 	Service string
+	// ServiceSource specifies the origin of the service name (e.g. "opt.wrap_handler", "opt.with_service")
+	// and is used to populate the _dd.svc_src tag for service name precedence decisions.
+	ServiceSource string
 	// Resource optionally specifies the resource name for this request.
 	Resource string
 	// QueryParams should be true in order to append the URL query values to the  "http.url" tag.
@@ -53,14 +57,13 @@ func BeforeHandle(cfg *ServeConfig, w http.ResponseWriter, r *http.Request) (htt
 	opts[0] = tracer.Tag(ext.SpanKind, ext.SpanKindServer)
 	opts[1] = tracer.Tag(ext.Component, "net/http")
 	if cfg.Service != "" {
-		opts = append(opts, tracer.ServiceName(cfg.Service))
+		opts = append(opts, tracer.Tag(ext.KeyServiceSource, internal.ServiceOverride{Name: cfg.Service, Source: cfg.ServiceSource}))
 	}
 	if cfg.Resource != "" {
 		opts = append(opts, tracer.ResourceName(cfg.Resource))
 	}
-	if cfg.Route != "" {
-		opts = append(opts, tracer.Tag(ext.HTTPRoute, cfg.Route))
-	}
+	endpointOpt, endpointFn := handleHTTPEndpoint(cfg, r)
+	opts = append(opts, endpointOpt)
 	span, ctx, finishSpans := StartRequestSpan(r, opts...)
 	rw, ddrw := wrapResponseWriter(w)
 	rt := r.WithContext(ctx)
@@ -70,14 +73,9 @@ func BeforeHandle(cfg *ServeConfig, w http.ResponseWriter, r *http.Request) (htt
 	afterHandle := closeSpan
 	handled := false
 	if appsec.Enabled() {
-		route := cfg.Route
-		if route == "" {
-			var quantizer urlQuantizer
-			route = quantizer.Quantize(r.URL.EscapedPath())
-		}
 		appsecConfig := &httpsec.Config{
 			Framework:   cfg.Framework,
-			Route:       route,
+			Route:       renamedRoute(cfg.Route, endpointFn(), r.URL.EscapedPath()),
 			RouteParams: cfg.RouteParams,
 		}
 
@@ -91,4 +89,53 @@ func BeforeHandle(cfg *ServeConfig, w http.ResponseWriter, r *http.Request) (htt
 		handled = secHandled
 	}
 	return rw, rt, afterHandle, handled
+}
+
+// handleHTTPEndpoint tags the span with http.endpoint based on the resource renaming configuration and returns the computed endpoint.
+func handleHTTPEndpoint(serveCfg *ServeConfig, r *http.Request) (tracer.StartSpanOption, func() string) {
+	var endpoint string
+
+	return func(sc *tracer.StartSpanConfig) {
+			if sc.Tags == nil {
+				return
+			}
+			if serveCfg.Route != "" {
+				sc.Tags[ext.HTTPRoute] = serveCfg.Route
+			}
+
+			// This feature is currently disabled by default, except when AppSec is enabled at startup. It can be explicitly
+			// enabled or disabled for all requests by setting the value of DD_TRACE_RESOURCE_RENAMING_ENABLED.
+			if (cfg.resourceRenamingEnabled != nil && !*cfg.resourceRenamingEnabled) || (cfg.resourceRenamingEnabled == nil && !cfg.appsecEnabledMode()) {
+				return
+			}
+
+			httpURL := r.URL.EscapedPath()
+			if cfg.resourceRenamingAlwaysSimplifiedEndpoint {
+				endpoint = simplifyHTTPUrl(httpURL)
+				sc.Tags[ext.HTTPEndpoint] = endpoint
+				return
+			}
+
+			if serveCfg.Route != "" {
+				endpoint = serveCfg.Route
+			} else {
+				endpoint = simplifyHTTPUrl(httpURL)
+			}
+
+			sc.Tags[ext.HTTPEndpoint] = endpoint
+		}, func() string {
+			return endpoint
+		}
+}
+
+// renamedRoute returns the key value to use for the API Security sampler.
+// If no route or endpoint are available, the key is computed based on the url.
+func renamedRoute(route string, endpoint string, url string) string {
+	if route != "" {
+		return route
+	}
+	if endpoint != "" {
+		return endpoint
+	}
+	return simplifyHTTPUrl(url)
 }

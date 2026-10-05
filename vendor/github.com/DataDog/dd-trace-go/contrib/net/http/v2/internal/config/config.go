@@ -43,6 +43,7 @@ type CommonConfig struct {
 	AnalyticsRate float64
 	IgnoreRequest func(*http.Request) bool
 	ServiceName   string
+	ServiceSource string
 	ResourceNamer func(*http.Request) string
 	SpanOpts      []tracer.StartSpanOption
 	IsStatusError func(int) bool
@@ -68,6 +69,7 @@ func Default(instr *instrumentation.Instrumentation) *Config {
 		cfg.AnalyticsRate = instr.AnalyticsRate(true)
 	}
 	cfg.ServiceName = instr.ServiceName(instrumentation.ComponentServer, nil)
+	cfg.ServiceSource = string(instrumentation.PackageNetHTTP)
 	cfg.HeaderTags = instr.HTTPHeadersAsTags()
 	cfg.SpanOpts = []tracer.StartSpanOption{tracer.Measured()}
 	if !math.IsNaN(cfg.AnalyticsRate) {
@@ -94,7 +96,7 @@ type RoundTripperConfig struct {
 	Propagation   bool
 	ErrCheck      func(err error) bool
 	QueryString   bool // reports whether the query string is included in the URL tag for http client spans
-	IsStatusError func(statusCode int) bool
+	ClientTimings bool // reports whether httptrace.ClientTrace should be enabled for detailed timing
 }
 
 func (c *RoundTripperConfig) ApplyOpts(opts ...RoundTripperOption) {
