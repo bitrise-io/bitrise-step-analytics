@@ -44,8 +44,6 @@ cloud.google.com/go/pubsub/internal/scheduler
 # cloud.google.com/go/pubsub/v2 v2.0.0
 ## explicit; go 1.23.0
 cloud.google.com/go/pubsub/v2/apiv1/pubsubpb
-# github.com/DataDog/appsec-internal-go v1.13.0
-## explicit; go 1.23.0
 # github.com/DataDog/datadog-agent/comp/core/tagger/origindetection v0.77.0
 ## explicit; go 1.25.0
 github.com/DataDog/datadog-agent/comp/core/tagger/origindetection
@@ -106,15 +104,16 @@ github.com/DataDog/datadog-agent/pkg/version
 # github.com/DataDog/datadog-go/v5 v5.8.3
 ## explicit; go 1.13
 github.com/DataDog/datadog-go/v5/statsd
-# github.com/DataDog/dd-trace-go/contrib/gorilla/mux/v2 v2.2.2
-## explicit; go 1.23.0
+# github.com/DataDog/dd-trace-go/contrib/gorilla/mux/v2 v2.8.1
+## explicit; go 1.25.0
 github.com/DataDog/dd-trace-go/contrib/gorilla/mux/v2
-# github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.2.2
-## explicit; go 1.23.0
+# github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.8.1
+## explicit; go 1.25.0
 github.com/DataDog/dd-trace-go/contrib/net/http/v2
 github.com/DataDog/dd-trace-go/contrib/net/http/v2/client
 github.com/DataDog/dd-trace-go/contrib/net/http/v2/internal/config
 github.com/DataDog/dd-trace-go/contrib/net/http/v2/internal/orchestrion
+github.com/DataDog/dd-trace-go/contrib/net/http/v2/internal/pattern
 github.com/DataDog/dd-trace-go/contrib/net/http/v2/internal/wrap
 # github.com/DataDog/dd-trace-go/v2 v2.8.1
 ## explicit; go 1.25.0
@@ -140,7 +139,6 @@ github.com/DataDog/dd-trace-go/v2/instrumentation/appsec/trace
 github.com/DataDog/dd-trace-go/v2/instrumentation/env
 github.com/DataDog/dd-trace-go/v2/instrumentation/errortrace
 github.com/DataDog/dd-trace-go/v2/instrumentation/httptrace
-github.com/DataDog/dd-trace-go/v2/instrumentation/net/http/pattern
 github.com/DataDog/dd-trace-go/v2/instrumentation/options
 github.com/DataDog/dd-trace-go/v2/internal
 github.com/DataDog/dd-trace-go/v2/internal/appsec
@@ -235,8 +233,6 @@ github.com/DataDog/go-tuf/pkg/keys
 github.com/DataDog/go-tuf/pkg/targets
 github.com/DataDog/go-tuf/util
 github.com/DataDog/go-tuf/verify
-# github.com/DataDog/opentelemetry-mapping-go/pkg/otlp/attributes v0.27.0
-## explicit; go 1.23.0
 # github.com/DataDog/sketches-go v1.4.8
 ## explicit; go 1.23
 github.com/DataDog/sketches-go/ddsketch
@@ -245,8 +241,6 @@ github.com/DataDog/sketches-go/ddsketch/mapping
 github.com/DataDog/sketches-go/ddsketch/pb/sketchpb
 github.com/DataDog/sketches-go/ddsketch/stat
 github.com/DataDog/sketches-go/ddsketch/store
-# github.com/Masterminds/semver/v3 v3.3.1
-## explicit; go 1.21
 # github.com/Microsoft/go-winio v0.6.2
 ## explicit; go 1.21
 github.com/Microsoft/go-winio
@@ -286,8 +280,6 @@ github.com/davecgh/go-spew/spew
 # github.com/dustin/go-humanize v1.0.1
 ## explicit; go 1.16
 github.com/dustin/go-humanize
-# github.com/eapache/queue/v2 v2.0.0-20230407133247-75960ed334e4
-## explicit; go 1.20
 # github.com/ebitengine/purego v0.10.0
 ## explicit; go 1.18
 github.com/ebitengine/purego
@@ -309,15 +301,9 @@ github.com/go-logr/stdr
 ## explicit; go 1.12
 github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
-# github.com/go-viper/mapstructure/v2 v2.5.0
-## explicit; go 1.18
 # github.com/gofrs/uuid v4.4.0+incompatible
 ## explicit
 github.com/gofrs/uuid
-# github.com/gogo/protobuf v1.3.2
-## explicit; go 1.15
-# github.com/golang/protobuf v1.5.4
-## explicit; go 1.17
 # github.com/google/s2a-go v0.1.9
 ## explicit; go 1.20
 github.com/google/s2a-go
@@ -492,8 +478,6 @@ go.opentelemetry.io/collector/component
 # go.opentelemetry.io/collector/featuregate v1.51.1-0.20260205185216-81bc641f26c0
 ## explicit; go 1.24.0
 go.opentelemetry.io/collector/featuregate
-# go.opentelemetry.io/collector/internal/telemetry v0.125.0
-## explicit; go 1.23.0
 # go.opentelemetry.io/collector/pdata v1.51.1-0.20260205185216-81bc641f26c0
 ## explicit; go 1.24.0
 go.opentelemetry.io/collector/pdata/internal
@@ -505,10 +489,6 @@ go.opentelemetry.io/collector/pdata/ptrace
 # go.opentelemetry.io/collector/pdata/pprofile v0.145.1-0.20260205185216-81bc641f26c0
 ## explicit; go 1.24.0
 go.opentelemetry.io/collector/pdata/pprofile
-# go.opentelemetry.io/collector/semconv v0.125.0
-## explicit; go 1.23.0
-# go.opentelemetry.io/contrib/bridges/otelzap v0.10.0
-## explicit; go 1.22.0
 # go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0
 ## explicit; go 1.23.0
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
@@ -540,15 +520,11 @@ go.opentelemetry.io/otel/semconv/v1.37.0
 go.opentelemetry.io/otel/semconv/v1.37.0/httpconv
 go.opentelemetry.io/otel/semconv/v1.39.0
 go.opentelemetry.io/otel/semconv/v1.6.1
-# go.opentelemetry.io/otel/log v0.15.0
-## explicit; go 1.24.0
 # go.opentelemetry.io/otel/metric v1.41.0
 ## explicit; go 1.24.0
 go.opentelemetry.io/otel/metric
 go.opentelemetry.io/otel/metric/embedded
 go.opentelemetry.io/otel/metric/noop
-# go.opentelemetry.io/otel/sdk v1.40.0
-## explicit; go 1.24.0
 # go.opentelemetry.io/otel/trace v1.41.0
 ## explicit; go 1.24.0
 go.opentelemetry.io/otel/trace

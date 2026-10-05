@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub" //nolint:staticcheck // TODO: migrate to cloud.google.com/go/pubsub/v2
 	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/bitrise-io/bitrise-step-analytics/models"
 	"github.com/bitrise-io/bitrise-step-analytics/stepmetrics"
@@ -26,7 +26,7 @@ type tracker struct {
 
 func NewTracker(projectID string, topic string, credentialJSON string) Tracker {
 	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, projectID, option.WithCredentialsJSON([]byte(credentialJSON)))
+	client, err := pubsub.NewClient(ctx, projectID, option.WithAuthCredentialsJSON(option.ServiceAccount, []byte(credentialJSON)))
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't start PubSub Client: %s", err.Error()))
 	}

@@ -3,21 +3,16 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2025 Datadog, Inc.
 
-// Deprecated: this package was not meant to be exported. It now exists only for
-// compatibility with older contrib module versions and won't be actively
-// maintained.
 package pattern
 
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strings"
 	"unicode"
 
-	"github.com/DataDog/dd-trace-go/v2/internal/telemetry/log"
-
+	internal "github.com/DataDog/dd-trace-go/contrib/net/http/v2/internal/config"
 	"github.com/puzpuzpuz/xsync/v3"
 )
 
@@ -55,7 +50,7 @@ func patternNames(pattern string) []string {
 		if err != nil {
 			// Ignore the error: Something as gone wrong, but we are not eager to find out why.
 			// We will just log it as a telemetry logs warning (and Debug to the user-facing log).
-			log.Warn("instrumentation/net/http/pattern: failed to parse mux path pattern", slog.Any("error", log.NewSafeError(err)))
+			internal.Instrumentation.Logger().Warn("instrumentation/net/http/pattern: failed to parse mux path pattern %q: %s", pattern, err.Error())
 			// here we fallthrough instead of returning to load a nil value into the cache to avoid reparsing the pattern.
 		}
 		return segments
@@ -107,7 +102,7 @@ func parsePatternNames(pattern string) ([]string, error) {
 	}
 	host := rest[:i]
 	rest = rest[i:]
-	if found0 := strings.Contains(host, "{"); found0 {
+	if j := strings.IndexByte(host, '{'); j >= 0 {
 		return nil, errors.New("host contains '{' (missing initial '/'?)")
 	}
 
